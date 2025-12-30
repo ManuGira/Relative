@@ -15,6 +15,16 @@ uv run myscript.py
 python myscript.py
 ```
 
+## Project Structure
+All source code is located in the `src/coordinate` directory. For example, to run a script located at `src/coordinate/main.py`, use:
+
+```bash
+uv run src/coordinate/transform.py
+```
+
+All tests are located in the `tests/` directory. The structure of the tests mirrors that of the `src/` directory.
+
+
 ## Testing
 tests are also run using `uv`.
 To run all tests at once, use:
