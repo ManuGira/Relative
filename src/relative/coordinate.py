@@ -99,7 +99,7 @@ class Coordinate:
         absolute_coords = transform_coordinate(absolute_transform, self.local_coords, self.coordinate_type)
         return Coordinate(local_coords=absolute_coords, coordinate_type=self.coordinate_type, frame=None)
         
-    def to_frame(self, target_frame: Frame) -> 'Coordinate':
+    def relative_to(self, target_frame: Frame) -> 'Coordinate':
         """Converts this coordinate to a different coordinate frame.
         
         Transforms the coordinate from its current frame to the target frame,
@@ -115,13 +115,13 @@ class Coordinate:
             >>> frame_a = Frame(transform=translate2D(5, 0))
             >>> frame_b = Frame(transform=translate2D(0, 3))
             >>> point_in_a = Point(np.array([0, 0]), frame=frame_a)
-            >>> point_in_b = point_in_a.to_frame(frame_b)
+            >>> point_in_b = point_in_a.relative_to(frame_b)
             >>> point_in_b.local_coords  # Should be [5, -3]
         """
         # Inverse transform from absolute to target frame
-        convert_transform = self.frame.compute_relative_transform_to(target_frame)
-        new_local_coords = transform_coordinate(convert_transform, self.local_coords, self.coordinate_type)
-        return Coordinate(local_coords=new_local_coords, coordinate_type=self.coordinate_type, frame=target_frame)
+        relative_transform = self.frame.compute_relative_transform_to(target_frame)
+        relative_coords = transform_coordinate(relative_transform, self.local_coords, self.coordinate_type)
+        return Coordinate(local_coords=relative_coords, coordinate_type=self.coordinate_type, frame=target_frame)
 
 
 class Point(Coordinate):
@@ -147,7 +147,7 @@ class Point(Coordinate):
             coordinate_type=CoordinateType.POINT,
             local_coords=local_coords, 
             frame=frame)
-
+        
 
 class Vector(Coordinate):
     """Represents a vector (direction/displacement) in a coordinate frame.

@@ -232,7 +232,7 @@ class TestCoordinateToFrame:
         frame = Frame(transform=translate2D(5, 3), parent=None)
         point = Point(local_coords=np.array([1, 2]), frame=frame)
         
-        result = point.to_frame(frame)
+        result = point.relative_to(frame)
         
         # Should have same coordinates in same frame
         np.testing.assert_array_almost_equal(result.local_coords, [1, 2])
@@ -248,7 +248,7 @@ class TestCoordinateToFrame:
         point = Point(local_coords=np.array([0, 0]), frame=frame_a)
         
         # Convert to frame B
-        result = point.to_frame(frame_b)
+        result = point.relative_to(frame_b)
         
         # Point is at (5, 0) globally
         # In frame B coords (which is at (0, 3)), that's (5, -3)
@@ -261,7 +261,7 @@ class TestCoordinateToFrame:
         child = Frame(transform=translate2D(3, 2), parent=parent)
         
         point = Point(local_coords=np.array([0, 0]), frame=parent)
-        result = point.to_frame(child)
+        result = point.relative_to(child)
         
         # Point at parent origin is at (10, 5) globally
         # Child origin is at (13, 7) globally
@@ -275,7 +275,7 @@ class TestCoordinateToFrame:
         child = Frame(transform=translate2D(3, 2), parent=parent)
         
         point = Point(local_coords=np.array([0, 0]), frame=child)
-        result = point.to_frame(parent)
+        result = point.relative_to(parent)
         
         # Point at child origin (13, 7 globally) is at (3, 2) in parent
         np.testing.assert_array_almost_equal(result.local_coords, [3, 2])
@@ -290,7 +290,7 @@ class TestCoordinateToFrame:
         point = Point(local_coords=np.array([1, 0]), frame=frame_a)
         
         # Convert to frame B (rotated 90 degrees)
-        result = point.to_frame(frame_b)
+        result = point.relative_to(frame_b)
         
         # (1, 0) in A becomes (0, -1) in B (inverse rotation)
         np.testing.assert_array_almost_equal(result.local_coords, [0, -1])
@@ -301,7 +301,7 @@ class TestCoordinateToFrame:
         frame_b = Frame(transform=translate2D(20, 15), parent=None)
         
         vector = Vector(local_coords=np.array([1, 0]), frame=frame_a)
-        result = vector.to_frame(frame_b)
+        result = vector.relative_to(frame_b)
         
         # Vector direction should be same regardless of translation
         np.testing.assert_array_almost_equal(result.local_coords, [1, 0])
@@ -313,7 +313,7 @@ class TestCoordinateToFrame:
         frame_b = Frame(transform=rotate2D(np.pi / 2), parent=None)
         
         vector = Vector(local_coords=np.array([1, 0]), frame=frame_a)
-        result = vector.to_frame(frame_b)
+        result = vector.relative_to(frame_b)
         
         # Vector should rotate
         np.testing.assert_array_almost_equal(result.local_coords, [0, -1])
@@ -327,7 +327,7 @@ class TestCoordinateToFrame:
         branch_b = Frame(transform=translate2D(0, 10), parent=root)
         
         point = Point(local_coords=np.array([1, 0]), frame=leaf_a)
-        result = point.to_frame(branch_b)
+        result = point.relative_to(branch_b)
         
         # Point goes through: leaf_a -> branch_a -> root -> branch_b
         # In leaf_a: (1, 0)
@@ -349,7 +349,7 @@ class TestPointAndVectorBehavior:
         
         # When converting to identity frame, point should be translated
         identity_frame = Frame(transform=np.eye(3), parent=None)
-        result = point.to_frame(identity_frame)
+        result = point.relative_to(identity_frame)
         
         expected = np.array([6, 5])
         np.testing.assert_array_almost_equal(result.local_coords, expected)
@@ -361,7 +361,7 @@ class TestPointAndVectorBehavior:
         
         # When converting to identity frame, vector should not be translated
         identity_frame = Frame(transform=np.eye(3), parent=None)
-        result = vector.to_frame(identity_frame)
+        result = vector.relative_to(identity_frame)
         
         expected = np.array([1, 2])
         np.testing.assert_array_almost_equal(result.local_coords, expected)
@@ -372,7 +372,7 @@ class TestPointAndVectorBehavior:
         point = Point(local_coords=np.array([3, 4]), frame=frame)
         
         identity_frame = Frame(transform=np.eye(3), parent=None)
-        result = point.to_frame(identity_frame)
+        result = point.relative_to(identity_frame)
         
         expected = np.array([6, 8])
         np.testing.assert_array_almost_equal(result.local_coords, expected)
@@ -383,7 +383,7 @@ class TestPointAndVectorBehavior:
         vector = Vector(local_coords=np.array([3, 4]), frame=frame)
         
         identity_frame = Frame(transform=np.eye(3), parent=None)
-        result = vector.to_frame(identity_frame)
+        result = vector.relative_to(identity_frame)
         
         expected = np.array([6, 8])
         np.testing.assert_array_almost_equal(result.local_coords, expected)
@@ -396,8 +396,8 @@ class TestPointAndVectorBehavior:
         point = Point(local_coords=np.array([1, 0]), frame=frame)
         vector = Vector(local_coords=np.array([1, 0]), frame=frame)
         
-        point_result = point.to_frame(identity_frame)
-        vector_result = vector.to_frame(identity_frame)
+        point_result = point.relative_to(identity_frame)
+        vector_result = vector.relative_to(identity_frame)
         
         # Both should rotate the same
         expected = np.array([0, 1])
