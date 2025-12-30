@@ -71,13 +71,27 @@ jobs:
       run: uv sync --dev
 
     - name: Check code formatting with ruff
+      id: ruff
       run: |
         uv add --dev ruff
         uv run ruff check src tests
       continue-on-error: true
 
     - name: Type check with mypy
+      id: mypy
       run: |
         uv add --dev mypy
         uv run mypy src --ignore-missing-imports
       continue-on-error: true
+
+    - name: Check lint results
+      if: steps.ruff.outcome == 'failure' || steps.mypy.outcome == 'failure'
+      run: |
+        echo "❌ Linting failed:"
+        if [ "${{ steps.ruff.outcome }}" == "failure" ]; then
+          echo "  - Ruff found issues (see 'Check code formatting with ruff' for details)"
+        fi
+        if [ "${{ steps.mypy.outcome }}" == "failure" ]; then
+          echo "  - Mypy found issues (see 'Type check with mypy' for details)"
+        fi
+        exit 1
