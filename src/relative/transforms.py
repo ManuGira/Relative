@@ -25,6 +25,12 @@ def scale2D(sx: float, sy: float) -> np.ndarray:
                      [0, sy,  0],
                      [0,  0, 1]])
 
+def shear2D(kx: float, ky: float) -> np.ndarray:
+    """Creates a 2D shear matrix."""
+    return np.array([[1, kx, 0],
+                     [ky, 1, 0],
+                     [0,  0, 1]])
+
 
 def trs2D(tx: float, ty: float, angle_rad: float, sx: float, sy: float) -> np.ndarray:
     """Creates a combined translation, rotation, and scaling matrix."""
@@ -32,3 +38,11 @@ def trs2D(tx: float, ty: float, angle_rad: float, sx: float, sy: float) -> np.nd
     R = rotate2D(angle_rad)
     S = scale2D(sx, sy)
     return T @ R @ S
+
+def trks2D(tx: float, ty: float, angle_rad: float, kx: float, ky: float, sx: float, sy: float) -> np.ndarray:
+    """Creates a combined translation, rotation, shear, and scaling matrix."""
+    T = translate2D(tx, ty)
+    R = rotate2D(angle_rad)
+    K = shear2D(kx, ky)
+    S = scale2D(sx, sy)
+    return T @ R @ K @ S

@@ -11,6 +11,11 @@ dependencies = [
     "numpy>=2.4.0",
 ]
 
+[project.optional-dependencies]
+plotting = [
+    "matplotlib>=3.10.8",
+]
+
 [project.scripts]
 relative = "relative:main"
 
@@ -20,6 +25,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "matplotlib>=3.10.8",
     "mypy>=1.19.1",
     "pytest>=9.0.2",
     "ruff>=0.14.10",
