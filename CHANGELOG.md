@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0] - 2025-12-31
+
+### Added
+- Rename package to Coordinatus
+- Increase test coverage for visualization module
+- Publish test coverage reports to Github Pages
+
 ## [0.1.0] - 2025-12-31
 
 ### Added
