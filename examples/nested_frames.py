@@ -100,7 +100,7 @@ def main():
     
     plt.tight_layout()
     plt.savefig('examples/nested_frames.png', dpi=150, bbox_inches='tight')
-    print(f"\nPlot saved to: examples/nested_frames.png")
+    print("\nPlot saved to: examples/nested_frames.png")
     plt.show()
 
 

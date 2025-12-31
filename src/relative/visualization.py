@@ -6,15 +6,18 @@ Requires matplotlib to be installed.
 Install with: pip install relative[plotting]
 """
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 import numpy as np
 
-try:
+if TYPE_CHECKING:
     from matplotlib.axes import Axes
+
+try:
+    from matplotlib.axes import Axes as _Axes
     _HAS_MATPLOTLIB = True
 except ImportError:
     _HAS_MATPLOTLIB = False
-    Axes = None  # Type hint placeholder
+    _Axes = None  # type: ignore
 
 from .frame import Frame
 from .coordinate import Point, Vector
@@ -30,7 +33,7 @@ def _check_matplotlib():
 
 
 def draw_frame_axes(
-    ax: 'Axes',
+    ax: 'Axes',  # type: ignore[name-defined]
     frame: Optional[Frame],
     reference_frame: Optional[Frame] = None,
     color: str = 'blue',
@@ -103,7 +106,7 @@ def draw_frame_axes(
 
 
 def draw_points(
-    ax: 'Axes',
+    ax: 'Axes',  # type: ignore[name-defined]
     points: List[Point],
     reference_frame: Optional[Frame] = None,
     color: str = 'red',

@@ -10,7 +10,7 @@ from .coordinate import Coordinate, Point, Vector, transform_coordinate
 try:
     from . import visualization
 except ImportError:
-    visualization = None
+    visualization = None  # type: ignore[assignment]
 
 # Define what's available when using "from coordinate import *"
 __all__ = [
