@@ -3,7 +3,7 @@
 This module provides plotting functions to visualize frames and points.
 Requires matplotlib to be installed.
 
-Install with: pip install relative[plotting]
+Install with: pip install coordinatus[plotting]
 """
 
 from typing import Optional, List, TYPE_CHECKING
@@ -28,7 +28,7 @@ def _check_matplotlib():
     if not _HAS_MATPLOTLIB:
         raise ImportError(
             "Matplotlib is required for visualization. "
-            "Install it with: pip install relative[plotting]"
+            "Install it with: pip install coordinatus[plotting]"
         )
 
 
@@ -51,8 +51,8 @@ def draw_frame_axes(
     
     Examples:
         >>> import matplotlib.pyplot as plt
-        >>> from relative import Frame, create_frame
-        >>> from relative.visualization import draw_frame_axes
+        >>> from coordinatus import Frame, create_frame
+        >>> from coordinatus.visualization import draw_frame_axes
         >>> 
         >>> fig, ax = plt.subplots()
         >>> frame = create_frame(None, tx=2, ty=1, angle_rad=np.pi/4)
@@ -127,8 +127,8 @@ def draw_points(
     
     Examples:
         >>> import matplotlib.pyplot as plt
-        >>> from relative import Frame, Point, create_frame
-        >>> from relative.visualization import draw_points
+        >>> from coordinatus import Frame, Point, create_frame
+        >>> from coordinatus.visualization import draw_points
         >>> 
         >>> fig, ax = plt.subplots()
         >>> frame = create_frame(None, tx=1, ty=1)

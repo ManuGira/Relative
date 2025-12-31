@@ -4,7 +4,7 @@ Creates 4 nested frames with the same TRS transformation applied at each level,
 showing how transformations accumulate through the hierarchy.
 """
 
-from relative import Frame, Point, create_frame
+from coordinatus import Frame, Point, create_frame
 import numpy as np
 import matplotlib.pyplot as plt
 

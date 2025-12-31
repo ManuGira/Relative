@@ -1,12 +1,12 @@
-# Relative
+# Coordinatus
 
 **Simple coordinate transformations with hierarchical frames**
 
-Ever needed to convert coordinates between different spaces?  *Relative* makes it easy to work with nested coordinate systems—like transforming from a character's local space to world space, or from one object to another.
+Ever needed to convert coordinates between different spaces?  *Coordinatus* makes it easy to work with nested coordinate systems—like transforming from a character's local space to world space, or from one object to another.
 
 > **Note:** Currently supports 2D Cartesian coordinates. Support for 3D, polar, and spherical coordinate systems is planned.
 
-## Why Relative?
+## Why Coordinatus?
 
 - **Intuitive API**: Work with Points and Vectors that transform correctly (vectors ignore translation!)
 - **Hierarchical Frames**: Build parent-child relationships just like scene graphs in game engines
@@ -16,7 +16,7 @@ Ever needed to convert coordinates between different spaces?  *Relative* makes i
 ## Quick Start
 
 ```python
-from relative import Frame, Point, create_frame
+from coordinatus import Frame, Point, create_frame
 import numpy as np
 
 # Create a world frame
@@ -50,7 +50,7 @@ A `Frame` represents a coordinate system with its own position, rotation, and sc
 - **Vectors** represent directions/offsets and ignore translation
 
 ```python
-from relative import Point, Vector, Frame, create_frame
+from coordinatus import Point, Vector, Frame, create_frame
 
 frame = create_frame(parent=None, tx=10, ty=5)
 
@@ -102,7 +102,7 @@ From Frame 2's perspective, Frame 2 is now at the origin with standard axes. The
 ## Installation
 
 ```bash
-pip install relative
+pip install coordinatus
 ```
 
 ### Optional: Visualization Support
@@ -110,17 +110,17 @@ pip install relative
 For plotting and visualization features (used in examples):
 
 ```bash
-pip install relative[plotting]
+pip install coordinatus[plotting]
 ```
 
-This installs matplotlib for the `relative.visualization` module.
+This installs matplotlib for the `coordinatus.visualization` module.
 
 ## API Overview
 
 ### Creating Frames
 
 ```python
-from relative import Frame, create_frame
+from coordinatus import Frame, create_frame
 import numpy as np
 
 # Manually with a transform matrix
@@ -138,7 +138,7 @@ frame = create_frame(
 ### Transformation Utilities
 
 ```python
-from relative.transforms import translate2D, rotate2D, scale2D, trs2D
+from coordinatus.transforms import translate2D, rotate2D, scale2D, trs2D
 
 # Individual transformations (2D)
 t = translate2D(tx=10, ty=5)
@@ -152,7 +152,7 @@ transform = trs2D(tx=10, ty=5, angle_rad=np.pi/4, sx=2, sy=2)
 ### Visualization (Optional)
 
 ```python
-from relative.visualization import draw_frame_axes, draw_points
+from coordinatus.visualization import draw_frame_axes, draw_points
 import matplotlib.pyplot as plt
 
 # Create figure
@@ -166,7 +166,7 @@ draw_points(ax, [point1, point2], color='red')
 plt.show()
 ```
 
-**Note:** Requires `pip install relative[plotting]`
+**Note:** Requires `pip install coordinatus[plotting]`
 
 ## Examples
 

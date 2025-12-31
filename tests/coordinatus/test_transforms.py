@@ -1,7 +1,7 @@
 """Unit tests for transformation matrix functions."""
 
 import numpy as np
-from relative.transforms import translate2D, rotate2D, scale2D, trs2D
+from coordinatus.transforms import translate2D, rotate2D, scale2D, trs2D
 
 
 class TestTranslate2D:

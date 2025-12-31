@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/relative
+      url: https://pypi.org/p/coordinatus
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
@@ -52,7 +52,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/relative
+      url: https://test.pypi.org/p/coordinatus
     permissions:
       id-token: write
 

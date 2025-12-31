@@ -1,8 +1,8 @@
 """Unit tests for the Frame class."""
 
 import numpy as np
-from relative.frame import Frame, create_frame
-from relative.transforms import translate2D, rotate2D, scale2D, trs2D
+from coordinatus.frame import Frame, create_frame
+from coordinatus.transforms import translate2D, rotate2D, scale2D, trs2D
 
 
 class TestFrameInit:

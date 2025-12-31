@@ -4,9 +4,9 @@ Shows how the same scene (2 frames and 2 points) looks different when viewed
 from different reference frames: absolute space, frame 1, and frame 2.
 """
 
-from relative import Frame, Point, create_frame
-from relative.transforms import trks2D
-from relative.visualization import draw_frame_axes, draw_points
+from coordinatus import Frame, Point, create_frame
+from coordinatus.transforms import trks2D
+from coordinatus.visualization import draw_frame_axes, draw_points
 import numpy as np
 import matplotlib.pyplot as plt
 

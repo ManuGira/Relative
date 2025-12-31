@@ -16,13 +16,13 @@ python myscript.py
 ```
 
 ## Project Structure
-All source code is located in the `src/relative` directory. For example, to run a script located at `src/relative/main.py`, use:
+All source code is located in the `src/coordinatus` directory. For example, to run a script located at `src/coordinatus/main.py`, use:
 
 ```bash
-uv run src/relative/transform.py
+uv run src/coordinatus/transform.py
 ```
 
-All tests are located in the `tests/` directory. The structure of the tests mirrors that of the `src/` directory.
+All tests are located in the `tests/` directory. The structure of the tests mirrors that of the `src/` directory. Test tests file names are prefixed with `test_`. For example, the test for `src/coordinatus/transform.py` would be located at `tests/coordinatus/test_transform.py`.
 
 
 ## Testing

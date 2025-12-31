@@ -1,6 +1,6 @@
 # Examples
 
-This folder contains practical examples demonstrating how to use the Relative package.
+This folder contains practical examples demonstrating how to use the Coordinatus package.
 
 ## Running Examples
 
