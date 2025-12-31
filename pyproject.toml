@@ -11,6 +11,10 @@ dependencies = [
     "numpy>=2.4.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/ManuGira/Coordinatus"
+Repository = "https://github.com/ManuGira/Coordinatus"
+
 [project.optional-dependencies]
 plotting = [
     "matplotlib>=3.10.8",
@@ -30,3 +34,4 @@ dev = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/coordinatus/__init__.py" = ["F401"]  # Ignore `F401` (imported but unused)
+

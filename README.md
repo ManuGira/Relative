@@ -83,17 +83,17 @@ A fundamental concept in coordinate transformations is that **the same geometry 
 Consider these three views of the same scene with an F-shaped object and two coordinate frames:
 
 ### View from Frame 1
-![Frame1 View](examples/frame_visualization_Frame1.png)
+![Frame1 View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/frame_visualization_Frame1.png)
 
 The F shape appears undistorted in its canonical form because it was defined using Frame 1 coordinates. From this perspective, Frame 1's axes are the standard orthogonal x and y axes at the origin. Frame 2 (green) appears in a different position and orientation relative to Frame 1.
 
 ### View from Absolute Space
-![Absolute View](examples/frame_visualization_Absolute.png)
+![Absolute View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/frame_visualization_Absolute.png)
 
 In absolute (world) space, we see how the F shape actually looks in reality. Frame 1 (blue) is sheared and the F inherits this shearing. Frame 2 (green) is rotated and scaled. This reveals the true geometric relationships between all elements.
 
 ### View from Frame 2  
-![Frame2 View](examples/frame_visualization_Frame2.png)
+![Frame2 View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/frame_visualization_Frame2.png)
 
 From Frame 2's perspective, Frame 2 is now at the origin with standard axes. The same F shape appears with a completely different orientation and distortion, even though the geometry itself hasn't changed—only our reference frame has.
 
