@@ -403,3 +403,135 @@ class TestPointAndVectorBehavior:
         expected = np.array([0, 1])
         np.testing.assert_array_almost_equal(point_result.local_coords, expected)
         np.testing.assert_array_almost_equal(vector_result.local_coords, expected)
+
+
+class TestDxNCoordinates:
+    """Tests for DxN coordinate arrays (multiple points/vectors at once)."""
+
+    def test_transform_coordinate_2xN_points_translation(self):
+        """Test transforming multiple points (2xN array) with translation."""
+        transform = translate2D(5, 3)
+        # Three points: (1, 2), (3, 4), (5, 6)
+        coords = np.array([[1, 3, 5], [2, 4, 6]])
+        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        
+        # All points should be translated
+        expected = np.array([[6, 8, 10], [5, 7, 9]])
+        np.testing.assert_array_almost_equal(result, expected)
+
+    def test_transform_coordinate_2xN_vectors_translation(self):
+        """Test that translation doesn't affect multiple vectors (2xN array)."""
+        transform = translate2D(5, 3)
+        # Three vectors: (1, 2), (3, 4), (5, 6)
+        coords = np.array([[1, 3, 5], [2, 4, 6]])
+        result = transform_coordinate(transform, coords, CoordinateType.VECTOR)
+        
+        # Vectors should be unchanged by translation
+        expected = np.array([[1, 3, 5], [2, 4, 6]])
+        np.testing.assert_array_almost_equal(result, expected)
+
+    def test_transform_coordinate_2xN_points_rotation(self):
+        """Test rotating multiple points (2xN array)."""
+        transform = rotate2D(np.pi / 2)  # 90 degrees
+        # Two points: (1, 0), (0, 1)
+        coords = np.array([[1, 0], [0, 1]])
+        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        
+        # After 90 degree rotation: (1,0) -> (0,1), (0,1) -> (-1,0)
+        expected = np.array([[0, -1], [1, 0]])
+        np.testing.assert_array_almost_equal(result, expected)
+
+    def test_transform_coordinate_2xN_points_scale(self):
+        """Test scaling multiple points (2xN array)."""
+        transform = scale2D(2, 3)
+        # Three points
+        coords = np.array([[1, 2, 3], [4, 5, 6]])
+        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        
+        expected = np.array([[2, 4, 6], [12, 15, 18]])
+        np.testing.assert_array_almost_equal(result, expected)
+
+    def test_point_init_2xN(self):
+        """Test creating a Point with 2xN array."""
+        coords = np.array([[1, 2, 3], [4, 5, 6]])
+        point = Point(local_coords=coords)
+        
+        assert point.coordinate_type == CoordinateType.POINT
+        np.testing.assert_array_equal(point.local_coords, coords)
+        assert point.local_coords.shape == (2, 3)
+
+    def test_vector_init_2xN(self):
+        """Test creating a Vector with 2xN array."""
+        coords = np.array([[1, 2], [3, 4]])
+        vector = Vector(local_coords=coords)
+        
+        assert vector.coordinate_type == CoordinateType.VECTOR
+        np.testing.assert_array_equal(vector.local_coords, coords)
+        assert vector.local_coords.shape == (2, 2)
+
+    def test_point_2xN_to_absolute(self):
+        """Test converting multiple points to absolute coordinates."""
+        frame = Frame(transform=translate2D(10, 5), parent=None)
+        # Two points: (0, 0) and (1, 1)
+        coords = np.array([[0, 1], [0, 1]])
+        point = Point(local_coords=coords, frame=frame)
+        
+        result = point.to_absolute()
+        
+        # Points should be translated
+        expected = np.array([[10, 11], [5, 6]])
+        np.testing.assert_array_almost_equal(result.local_coords, expected)
+
+    def test_vector_2xN_to_absolute(self):
+        """Test converting multiple vectors to absolute coordinates."""
+        frame = Frame(transform=translate2D(10, 5), parent=None)
+        # Two vectors: (1, 0) and (0, 1)
+        coords = np.array([[1, 0], [0, 1]])
+        vector = Vector(local_coords=coords, frame=frame)
+        
+        result = vector.to_absolute()
+        
+        # Vectors should not be translated
+        expected = np.array([[1, 0], [0, 1]])
+        np.testing.assert_array_almost_equal(result.local_coords, expected)
+
+    def test_point_2xN_relative_to(self):
+        """Test converting multiple points between frames."""
+        frame_a = Frame(transform=translate2D(5, 0), parent=None)
+        frame_b = Frame(transform=translate2D(0, 3), parent=None)
+        
+        # Two points in frame_a: (0, 0) and (1, 1)
+        coords = np.array([[0, 1], [0, 1]])
+        point = Point(local_coords=coords, frame=frame_a)
+        
+        result = point.relative_to(frame_b)
+        
+        # Point (0, 0) in frame_a is at (5, 0) globally, which is (5, -3) in frame_b
+        # Point (1, 1) in frame_a is at (6, 1) globally, which is (6, -2) in frame_b
+        expected = np.array([[5, 6], [-3, -2]])
+        np.testing.assert_array_almost_equal(result.local_coords, expected)
+
+    def test_point_2xN_with_rotation(self):
+        """Test multiple points with rotation."""
+        frame = Frame(transform=rotate2D(np.pi / 2), parent=None)
+        # Three points along x-axis: (1,0), (2,0), (3,0)
+        coords = np.array([[1, 2, 3], [0, 0, 0]])
+        point = Point(local_coords=coords, frame=frame)
+        
+        identity_frame = Frame(transform=np.eye(3), parent=None)
+        result = point.relative_to(identity_frame)
+        
+        # After 90 degree rotation, they should be along y-axis: (0,1), (0,2), (0,3)
+        expected = np.array([[0, 0, 0], [1, 2, 3]])
+        np.testing.assert_array_almost_equal(result.local_coords, expected)
+
+    def test_single_point_still_works(self):
+        """Test that single point (2,) arrays still work (backwards compatibility)."""
+        frame = Frame(transform=translate2D(5, 3), parent=None)
+        coords = np.array([1, 2])
+        point = Point(local_coords=coords, frame=frame)
+        
+        result = point.to_absolute()
+        
+        expected = np.array([6, 5])
+        np.testing.assert_array_almost_equal(result.local_coords, expected)

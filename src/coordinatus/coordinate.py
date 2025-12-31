@@ -19,11 +19,11 @@ def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, coordin
     
     Args:
         transform: 3x3 affine transformation matrix in homogeneous coordinates.
-        coordinates: 2D coordinate as numpy array [x, y].
+        coordinates: 2D coordinate as numpy array [x, y] or DxN array for multiple coordinates.
         coordinate_type: CoordinateType.POINT or CoordinateType.VECTOR.
     
     Returns:
-        Transformed 2D coordinate as numpy array [x', y'].
+        Transformed 2D coordinate as numpy array [x', y'] or DxN array.
     
     Examples:
         >>> # Point translation
@@ -33,18 +33,48 @@ def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, coordin
         >>> # Vector translation (no effect)
         >>> transform_coordinate(translate2D(5, 3), np.array([1, 2]), CoordinateType.VECTOR)
         array([1., 2.])  # Vector unchanged
+        
+        >>> # Multiple points (DxN array)
+        >>> transform_coordinate(translate2D(5, 3), np.array([[1, 2], [3, 4]]), CoordinateType.POINT)
+        array([[6., 7.], [6., 7.]])  # Both points moved by (5, 3)
     """
+    # Determine if we have single coordinate (1D or 2D with shape (2,)) or multiple coordinates (2D with shape (D, N))
+    is_single = coordinates.ndim == 1
+    
     # Convert to homogeneous coordinates
     weight = 1.0 if coordinate_type == CoordinateType.POINT else 0.0
-    homogeneous_point = np.append(coordinates, weight) 
-    transformed_point = transform @ homogeneous_point
-
-    # Return to Cartesian coordinates
-    # Normalize if necessary
-    weight = transformed_point[2]
-    if weight != 0:
-        transformed_point /= weight
-    return transformed_point[:2]
+    
+    if is_single:
+        # Single coordinate: shape (2,)
+        homogeneous_point = np.append(coordinates, weight) 
+        transformed_point = transform @ homogeneous_point
+        
+        # Return to Cartesian coordinates
+        # Normalize if necessary
+        weight = transformed_point[2]
+        if weight != 0:
+            transformed_point /= weight
+        return transformed_point[:2]
+    else:
+        # Multiple coordinates: shape (D, N)
+        # Add a row of weights to make shape (D+1, N)
+        num_points = coordinates.shape[1]
+        weights_row = np.full((1, num_points), weight)
+        homogeneous_coords = np.vstack([coordinates, weights_row])
+        
+        # Apply transformation: (3, 3) @ (3, N) -> (3, N)
+        transformed_coords = transform @ homogeneous_coords
+        
+        # Return to Cartesian coordinates
+        # Normalize if necessary (for projective transformations)
+        weights = transformed_coords[2, :]
+        # Only normalize where weights are non-zero
+        mask = weights != 0
+        if np.any(mask):
+            transformed_coords[:, mask] /= weights[mask]
+        
+        # Return only the first D rows (cartesian coordinates)
+        return transformed_coords[:2, :]
 
 
 class Coordinate:
