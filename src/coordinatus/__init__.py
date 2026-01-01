@@ -2,7 +2,7 @@
 
 # Import main classes and functions for convenient access
 from .types import CoordinateType
-from .transforms import translate2D, rotate2D, scale2D, trs2D
+from .transforms import translate2D, rotate2D, scale2D, shear2D, trs2D, trks2D
 from .frame import Frame, create_frame
 from .coordinate import Coordinate, Point, Vector, transform_coordinate
 
