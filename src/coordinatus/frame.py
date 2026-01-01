@@ -117,7 +117,7 @@ class Frame:
         return inv_transform @ self.compute_absolute_transform()
 
 
-def create_frame(parent: Optional[Frame], tx: float=0.0, ty: float=0.0, angle_rad: float=0.0, sx: float=1.0, sy: float=1.0) -> Frame:
+def create_frame(parent: Optional[Frame]=None, tx: float=0.0, ty: float=0.0, angle_rad: float=0.0, sx: float=1.0, sy: float=1.0) -> Frame:
     """Factory function to create a coordinate frame using TRS (Translation-Rotation-Scale) parameters.
     
     Convenience function that constructs a coordinate frame from intuitive transformation
