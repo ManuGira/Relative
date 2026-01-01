@@ -63,7 +63,7 @@ jobs:
 
   deploy-coverage:
     needs: test
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
