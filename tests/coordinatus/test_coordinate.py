@@ -3,7 +3,7 @@
 import numpy as np
 from coordinatus.coordinate import Coordinate, Point, Vector, transform_coordinate
 from coordinatus.frame import Frame
-from coordinatus.types import CoordinateType
+from coordinatus.types import CoordinateKind
 from coordinatus.transforms import translate2D, rotate2D, scale2D
 
 
@@ -14,7 +14,7 @@ class TestTransformCoordinate:
         """Test transforming a point with translation."""
         transform = translate2D(5, 3)
         coords = np.array([1, 2])
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         # Point should be translated
         expected = np.array([6, 5])
@@ -24,7 +24,7 @@ class TestTransformCoordinate:
         """Test that translation doesn't affect vectors."""
         transform = translate2D(5, 3)
         coords = np.array([1, 2])
-        result = transform_coordinate(transform, coords, CoordinateType.VECTOR)
+        result = transform_coordinate(transform, coords, CoordinateKind.VECTOR)
         
         # Vector should be unchanged by translation
         expected = np.array([1, 2])
@@ -34,7 +34,7 @@ class TestTransformCoordinate:
         """Test transforming a point with rotation."""
         transform = rotate2D(np.pi / 2)  # 90 degrees
         coords = np.array([1, 0])
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         expected = np.array([0, 1])
         np.testing.assert_array_almost_equal(result, expected)
@@ -43,7 +43,7 @@ class TestTransformCoordinate:
         """Test transforming a vector with rotation."""
         transform = rotate2D(np.pi / 2)  # 90 degrees
         coords = np.array([1, 0])
-        result = transform_coordinate(transform, coords, CoordinateType.VECTOR)
+        result = transform_coordinate(transform, coords, CoordinateKind.VECTOR)
         
         # Vector should also rotate
         expected = np.array([0, 1])
@@ -53,7 +53,7 @@ class TestTransformCoordinate:
         """Test transforming a point with scaling."""
         transform = scale2D(2, 3)
         coords = np.array([4, 5])
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         expected = np.array([8, 15])
         np.testing.assert_array_almost_equal(result, expected)
@@ -62,7 +62,7 @@ class TestTransformCoordinate:
         """Test transforming a vector with scaling."""
         transform = scale2D(2, 3)
         coords = np.array([4, 5])
-        result = transform_coordinate(transform, coords, CoordinateType.VECTOR)
+        result = transform_coordinate(transform, coords, CoordinateKind.VECTOR)
         
         # Vector should also be scaled
         expected = np.array([8, 15])
@@ -75,12 +75,12 @@ class TestCoordinateInit:
     def test_coordinate_init_no_system(self):
         """Test creating a coordinate without a frame creates identity frame."""
         coord = Coordinate(
-            coordinate_type=CoordinateType.POINT,
+            kind=CoordinateKind.POINT,
             coords=np.array([1, 2]),
             frame=None
         )
         
-        assert coord.coordinate_type == CoordinateType.POINT
+        assert coord.kind == CoordinateKind.POINT
         np.testing.assert_array_equal(coord.coords, [1, 2])
         assert coord.frame is not None
         assert coord.frame.parent is None
@@ -90,12 +90,12 @@ class TestCoordinateInit:
         """Test creating a coordinate with a custom frame."""
         frame = Frame(transform=translate2D(5, 3), parent=None)
         coord = Coordinate(
-            coordinate_type=CoordinateType.VECTOR,
+            kind=CoordinateKind.VECTOR,
             coords=np.array([2, 3]),
             frame=frame
         )
         
-        assert coord.coordinate_type == CoordinateType.VECTOR
+        assert coord.kind == CoordinateKind.VECTOR
         np.testing.assert_array_equal(coord.coords, [2, 3])
         assert coord.frame is frame
 
@@ -107,7 +107,7 @@ class TestPointInit:
         """Test creating a basic point."""
         point = Point(coords=np.array([3, 4]))
         
-        assert point.coordinate_type == CoordinateType.POINT
+        assert point.kind == CoordinateKind.POINT
         np.testing.assert_array_equal(point.coords, [3, 4])
         assert point.frame is not None
 
@@ -116,14 +116,14 @@ class TestPointInit:
         frame = Frame(transform=translate2D(10, 20), parent=None)
         point = Point(coords=np.array([1, 1]), frame=frame)
         
-        assert point.coordinate_type == CoordinateType.POINT
+        assert point.kind == CoordinateKind.POINT
         assert point.frame is frame
 
     def test_point_init_with_list(self):
         """Test creating a point with a list."""
         point = Point(coords=[3, 4])
         
-        assert point.coordinate_type == CoordinateType.POINT
+        assert point.kind == CoordinateKind.POINT
         np.testing.assert_array_equal(point.coords, [3, 4])
         assert isinstance(point.coords, np.ndarray)
 
@@ -131,7 +131,7 @@ class TestPointInit:
         """Test creating a point with a tuple."""
         point = Point(coords=(3, 4))
         
-        assert point.coordinate_type == CoordinateType.POINT
+        assert point.kind == CoordinateKind.POINT
         np.testing.assert_array_equal(point.coords, [3, 4])
         assert isinstance(point.coords, np.ndarray)
 
@@ -143,7 +143,7 @@ class TestVectorInit:
         """Test creating a basic vector."""
         vector = Vector(coords=np.array([1, 0]))
         
-        assert vector.coordinate_type == CoordinateType.VECTOR
+        assert vector.kind == CoordinateKind.VECTOR
         np.testing.assert_array_equal(vector.coords, [1, 0])
         assert vector.frame is not None
 
@@ -152,14 +152,14 @@ class TestVectorInit:
         frame = Frame(transform=rotate2D(np.pi / 4), parent=None)
         vector = Vector(coords=np.array([1, 1]), frame=frame)
         
-        assert vector.coordinate_type == CoordinateType.VECTOR
+        assert vector.kind == CoordinateKind.VECTOR
         assert vector.frame is frame
 
     def test_vector_init_with_list(self):
         """Test creating a vector with a list."""
         vector = Vector(coords=[1, 0])
         
-        assert vector.coordinate_type == CoordinateType.VECTOR
+        assert vector.kind == CoordinateKind.VECTOR
         np.testing.assert_array_equal(vector.coords, [1, 0])
         assert isinstance(vector.coords, np.ndarray)
 
@@ -167,7 +167,7 @@ class TestVectorInit:
         """Test creating a vector with a tuple."""
         vector = Vector(coords=(1, 0))
         
-        assert vector.coordinate_type == CoordinateType.VECTOR
+        assert vector.kind == CoordinateKind.VECTOR
         np.testing.assert_array_equal(vector.coords, [1, 0])
         assert isinstance(vector.coords, np.ndarray)
 
@@ -379,7 +379,7 @@ class TestDxNArraySupport:
         transform = translate2D(5, 3)
         # 2D array with 3 points: [x1, x2, x3] and [y1, y2, y3]
         coords = np.array([[1, 2, 3], [2, 4, 6]])  # shape (2, 3)
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         # All points should be translated
         expected = np.array([[6, 7, 8], [5, 7, 9]])
@@ -389,7 +389,7 @@ class TestDxNArraySupport:
         """Test that translation doesn't affect multiple vectors."""
         transform = translate2D(5, 3)
         coords = np.array([[1, 2, 3], [2, 4, 6]])  # shape (2, 3)
-        result = transform_coordinate(transform, coords, CoordinateType.VECTOR)
+        result = transform_coordinate(transform, coords, CoordinateKind.VECTOR)
         
         # Vectors should be unchanged by translation
         expected = np.array([[1, 2, 3], [2, 4, 6]])
@@ -399,7 +399,7 @@ class TestDxNArraySupport:
         """Test transforming multiple points with rotation."""
         transform = rotate2D(np.pi / 2)  # 90 degrees
         coords = np.array([[1, 0, 1], [0, 1, 1]])  # 3 points: (1,0), (0,1), (1,1)
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         # After 90 degree rotation: (1,0)->(0,1), (0,1)->(-1,0), (1,1)->(-1,1)
         expected = np.array([[0, -1, -1], [1, 0, 1]])
@@ -409,7 +409,7 @@ class TestDxNArraySupport:
         """Test transforming multiple vectors with rotation."""
         transform = rotate2D(np.pi / 2)  # 90 degrees
         coords = np.array([[1, 0], [0, 1]])  # 2 vectors: (1,0) and (0,1)
-        result = transform_coordinate(transform, coords, CoordinateType.VECTOR)
+        result = transform_coordinate(transform, coords, CoordinateKind.VECTOR)
         
         # Vectors should also rotate
         expected = np.array([[0, -1], [1, 0]])
@@ -419,7 +419,7 @@ class TestDxNArraySupport:
         """Test transforming multiple points with scaling."""
         transform = scale2D(2, 3)
         coords = np.array([[1, 2], [3, 4]])  # 2 points: (1,3) and (2,4)
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         expected = np.array([[2, 4], [9, 12]])
         np.testing.assert_array_almost_equal(result, expected)
@@ -430,7 +430,7 @@ class TestDxNArraySupport:
         # This test documents current 2D-only behavior
         transform = translate2D(5, 3)
         coords = np.array([[1, 2], [3, 4]])  # 2 points in 2D
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         expected = np.array([[6, 7], [6, 7]])
         np.testing.assert_array_almost_equal(result, expected)
@@ -465,7 +465,7 @@ class TestDxNArraySupport:
         """Test that single point (2,) still works after DxN implementation."""
         transform = translate2D(5, 3)
         coords = np.array([1, 2])  # shape (2,)
-        result = transform_coordinate(transform, coords, CoordinateType.POINT)
+        result = transform_coordinate(transform, coords, CoordinateKind.POINT)
         
         expected = np.array([6, 5])
         np.testing.assert_array_almost_equal(result, expected)
@@ -482,7 +482,7 @@ class TestCoordinateOperators:
         result = point1 + point2
         assert isinstance(result, Coordinate)
         np.testing.assert_array_equal(result.coords, [4, 6])
-        assert result.coordinate_type == CoordinateType.POINT
+        assert result.kind == CoordinateKind.POINT
         assert result.frame is point1.frame
 
     def test_coordinate_subtraction(self):
@@ -493,7 +493,7 @@ class TestCoordinateOperators:
         result = point1 - point2
         assert isinstance(result, Coordinate)
         np.testing.assert_array_equal(result.coords, [3, 4])
-        assert result.coordinate_type == CoordinateType.POINT
+        assert result.kind == CoordinateKind.POINT
 
     def test_coordinate_scalar_multiplication(self):
         """Test multiplying coordinate by scalar."""
@@ -502,7 +502,7 @@ class TestCoordinateOperators:
         result = point * 2
         assert isinstance(result, Coordinate)
         np.testing.assert_array_equal(result.coords, [4, 6])
-        assert result.coordinate_type == CoordinateType.POINT
+        assert result.kind == CoordinateKind.POINT
 
     def test_coordinate_scalar_multiplication_reverse(self):
         """Test multiplying scalar by coordinate."""
@@ -598,7 +598,7 @@ class TestCoordinateOperators:
         
         result = vector * 3
         assert isinstance(result, Coordinate)
-        assert result.coordinate_type == CoordinateType.VECTOR
+        assert result.kind == CoordinateKind.VECTOR
         np.testing.assert_array_equal(result.coords, [3, 0])
 
     def test_different_frames_addition_raises_error(self):

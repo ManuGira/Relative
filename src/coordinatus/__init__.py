@@ -1,7 +1,7 @@
 """Coordinate package for managing coordinate systems and transformations."""
 
 # Import main classes and functions for convenient access
-from .types import CoordinateType
+from .types import CoordinateKind
 from .transforms import translate2D, rotate2D, scale2D, shear2D, trs2D, trks2D
 from .frame import Frame, create_frame
 from .coordinate import Coordinate, Point, Vector, transform_coordinate

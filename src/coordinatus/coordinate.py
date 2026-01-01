@@ -5,10 +5,10 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .frame import Frame
-from .types import CoordinateType
+from .types import CoordinateKind
 
 
-def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, coordinate_type: CoordinateType) -> np.ndarray:
+def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, kind: CoordinateKind) -> np.ndarray:
     """Applies an affine transformation to a coordinate, respecting point vs vector semantics.
     
     Points and vectors transform differently under affine transformations:
@@ -22,22 +22,22 @@ def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, coordin
         transform: 3x3 affine transformation matrix in homogeneous coordinates.
         coordinates: 2D coordinate as numpy array [x, y] or DxN array where D is dimensions
                     and N is the number of points/vectors.
-        coordinate_type: CoordinateType.POINT or CoordinateType.VECTOR.
+        kind: CoordinateKind.POINT or CoordinateKind.VECTOR.
     
     Returns:
         Transformed 2D coordinate as numpy array [x', y'] or DxN array of transformed coordinates.
     
     Examples:
         >>> # Single point translation
-        >>> transform_coordinate(translate2D(5, 3), np.array([1, 2]), CoordinateType.POINT)
+        >>> transform_coordinate(translate2D(5, 3), np.array([1, 2]), CoordinateKind.POINT)
         array([6., 5.])  # Point moved by (5, 3)
         
         >>> # Single vector translation (no effect)
-        >>> transform_coordinate(translate2D(5, 3), np.array([1, 2]), CoordinateType.VECTOR)
+        >>> transform_coordinate(translate2D(5, 3), np.array([1, 2]), CoordinateKind.VECTOR)
         array([1., 2.])  # Vector unchanged
         
         >>> # Multiple points translation
-        >>> transform_coordinate(translate2D(5, 3), np.array([[1, 2], [2, 4]]), CoordinateType.POINT)
+        >>> transform_coordinate(translate2D(5, 3), np.array([[1, 2], [2, 4]]), CoordinateKind.POINT)
         array([[6., 7.], [5., 7.]])  # All points moved by (5, 3)
     """
     # Check if we have a single coordinate (1D) - if so, reshape to (D, 1)
@@ -49,7 +49,7 @@ def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, coordin
     D, N = coordinates.shape
     
     # Convert to homogeneous coordinates by adding a row of weights
-    weight = 1.0 if coordinate_type == CoordinateType.POINT else 0.0
+    weight = 1.0 if kind == CoordinateKind.POINT else 0.0
     weights = np.full((1, N), weight)
     homogeneous_coords = np.vstack([coordinates, weights])  # Shape (D+1, N)
     
@@ -83,30 +83,30 @@ class Coordinate:
     - Vectors: Represent directions/displacements, unaffected by translation
     
     Attributes:
-        coordinate_type: CoordinateType.POINT or CoordinateType.VECTOR
+        kind: CoordinateKind.POINT or CoordinateKind.VECTOR
         coords: 2D numpy array [x, y] in the local coordinate frame
         frame: The coordinate frame this coordinate is defined in
     
     Examples:
         >>> frame = Frame(transform=translate2D(5, 3))
-        >>> coord = Coordinate(CoordinateType.POINT, np.array([1, 2]), frame)
-        >>> coord = Coordinate(CoordinateType.POINT, [1, 2], frame)  # list also works
-        >>> coord = Coordinate(CoordinateType.POINT, (1, 2), frame)  # tuple also works
+        >>> coord = Coordinate(CoordinateKind.POINT, np.array([1, 2]), frame)
+        >>> coord = Coordinate(CoordinateKind.POINT, [1, 2], frame)  # list also works
+        >>> coord = Coordinate(CoordinateKind.POINT, (1, 2), frame)  # tuple also works
         >>> absolute_coord = coord.to_absolute()
     """
 
-    def __init__(self, coordinate_type: CoordinateType, coords: ArrayLike, frame: Optional[Frame] = None):
+    def __init__(self, kind: CoordinateKind, coords: ArrayLike, frame: Optional[Frame] = None):
         """Initialize a coordinate.
         
         Args:
-            coordinate_type: CoordinateType.POINT or CoordinateType.VECTOR
+            kind: CoordinateKind.POINT or CoordinateKind.VECTOR
             coords: Array-like (numpy array, list, tuple, etc.) representing coordinates.
                          Can be [x, y] for a single point/vector or [[x1, x2, ...], [y1, y2, ...]]
                          for multiple points/vectors.
             frame: Coordinate frame this coordinate is defined in.
                    If None, uses absolute/identity frame.
         """
-        self.coordinate_type = coordinate_type
+        self.kind = kind
         self.coords = np.asarray(coords)
         self.frame = frame if frame is not None else Frame()
 
@@ -141,12 +141,12 @@ class Coordinate:
             new_coords = self.coords + other.coords
         else:
             new_coords = self.coords + other
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __radd__(self, other):
         """Right addition."""
         new_coords = self.coords + other
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __sub__(self, other):
         """Subtract coordinates or arrays."""
@@ -156,12 +156,12 @@ class Coordinate:
             new_coords = self.coords - other.coords
         else:
             new_coords = self.coords - other
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __rsub__(self, other):
         """Right subtraction."""
         new_coords = other - self.coords
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __mul__(self, other):
         """Multiply coordinates or arrays."""
@@ -171,12 +171,12 @@ class Coordinate:
             new_coords = self.coords * other.coords
         else:
             new_coords = self.coords * other
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __rmul__(self, other):
         """Right multiplication."""
         new_coords = self.coords * other
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __truediv__(self, other):
         """Divide coordinates or arrays."""
@@ -186,22 +186,22 @@ class Coordinate:
             new_coords = self.coords / other.coords
         else:
             new_coords = self.coords / other
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __rtruediv__(self, other):
         """Right division."""
         new_coords = other / self.coords
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __neg__(self):
         """Negate coordinates."""
         new_coords = -self.coords
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     def __abs__(self):
         """Absolute value of coordinates."""
         new_coords = np.abs(self.coords)
-        return Coordinate(coordinate_type=self.coordinate_type, coords=new_coords, frame=self.frame)
+        return Coordinate(kind=self.kind, coords=new_coords, frame=self.frame)
 
     # Comparison operators
     def __eq__(self, other):
@@ -231,8 +231,8 @@ class Coordinate:
             >>> absolute_point.coords  # Should be [14, 8]
         """
         absolute_transform = self.frame.compute_absolute_transform()
-        absolute_coords = transform_coordinate(absolute_transform, self.coords, self.coordinate_type)
-        return Coordinate(coords=absolute_coords, coordinate_type=self.coordinate_type, frame=None)
+        absolute_coords = transform_coordinate(absolute_transform, self.coords, self.kind)
+        return Coordinate(coords=absolute_coords, kind=self.kind, frame=None)
         
     def relative_to(self, target_frame: Frame) -> 'Coordinate':
         """Converts this coordinate to a different coordinate frame.
@@ -255,8 +255,8 @@ class Coordinate:
         """
         # Inverse transform from absolute to target frame
         relative_transform = self.frame.compute_relative_transform_to(target_frame)
-        relative_coords = transform_coordinate(relative_transform, self.coords, self.coordinate_type)
-        return Coordinate(coords=relative_coords, coordinate_type=self.coordinate_type, frame=target_frame)
+        relative_coords = transform_coordinate(relative_transform, self.coords, self.kind)
+        return Coordinate(coords=relative_coords, kind=self.kind, frame=target_frame)
 
 
 class Point(Coordinate):
@@ -282,7 +282,7 @@ class Point(Coordinate):
     
     def __init__(self, coords: ArrayLike, frame: Optional[Frame] = None):
         super().__init__(
-            coordinate_type=CoordinateType.POINT,
+            kind=CoordinateKind.POINT,
             coords=coords, 
             frame=frame)
         
@@ -310,6 +310,6 @@ class Vector(Coordinate):
     
     def __init__(self, coords: ArrayLike, frame: Optional[Frame] = None):
         super().__init__(
-            coordinate_type=CoordinateType.VECTOR,
+            kind=CoordinateKind.VECTOR,
             coords=coords, 
             frame=frame)
