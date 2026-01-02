@@ -1131,3 +1131,75 @@ class TestTypePreservation:
         assert isinstance(result, Vector), f"Expected Vector but got {type(result)}"
         np.testing.assert_array_almost_equal(result.coords, [1, 2])
 
+
+class TestCoordinateDimensionProperties:
+    """Tests for the D and N properties of Coordinate."""
+
+    def test_D_single_2d_coordinate(self):
+        """Test D property for single 2D coordinate."""
+        coord = Coordinate(CoordinateKind.POINT, np.array([1, 2]))
+        assert coord.D == 2
+
+    def test_N_single_coordinate(self):
+        """Test N property for single coordinate."""
+        coord = Coordinate(CoordinateKind.POINT, np.array([1, 2]))
+        assert coord.N == 1
+
+    def test_D_multiple_coordinates(self):
+        """Test D property for multiple coordinates in DxN format."""
+        coords = np.array([[1, 2, 3], [4, 5, 6]])  # 2x3 array (2 dimensions, 3 points)
+        coord = Coordinate(CoordinateKind.POINT, coords)
+        assert coord.D == 2
+
+    def test_N_multiple_coordinates(self):
+        """Test N property for multiple coordinates in DxN format."""
+        coords = np.array([[1, 2, 3], [4, 5, 6]])  # 2x3 array (2 dimensions, 3 points)
+        coord = Coordinate(CoordinateKind.POINT, coords)
+        assert coord.N == 3
+
+    def test_D_N_with_point(self):
+        """Test D and N properties with Point subclass."""
+        point = Point(np.array([3, 4]))
+        assert point.D == 2
+        assert point.N == 1
+
+    def test_D_N_with_vector(self):
+        """Test D and N properties with Vector subclass."""
+        vector = Vector(np.array([5, 6]))
+        assert vector.D == 2
+        assert vector.N == 1
+
+    def test_D_N_with_multiple_points(self):
+        """Test D and N properties with multiple points."""
+        coords = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])  # 2x4 array
+        point = Point(coords)
+        assert point.D == 2
+        assert point.N == 4
+
+    def test_D_N_with_multiple_vectors(self):
+        """Test D and N properties with multiple vectors."""
+        coords = np.array([[1, 2], [3, 4]])  # 2x2 array
+        vector = Vector(coords)
+        assert vector.D == 2
+        assert vector.N == 2
+
+    def test_D_with_list_input(self):
+        """Test D property when coordinate is initialized with a list."""
+        coord = Coordinate(CoordinateKind.POINT, [7, 8])
+        assert coord.D == 2
+
+    def test_N_with_list_input(self):
+        """Test N property when coordinate is initialized with a list."""
+        coord = Coordinate(CoordinateKind.POINT, [7, 8])
+        assert coord.N == 1
+
+    def test_D_with_tuple_input(self):
+        """Test D property when coordinate is initialized with a tuple."""
+        coord = Coordinate(CoordinateKind.VECTOR, (9, 10))
+        assert coord.D == 2
+
+    def test_N_with_tuple_input(self):
+        """Test N property when coordinate is initialized with a tuple."""
+        coord = Coordinate(CoordinateKind.VECTOR, (9, 10))
+        assert coord.N == 1
+

@@ -110,6 +110,34 @@ class Coordinate:
         self.coords = np.asarray(coords)
         self.frame = frame if frame is not None else Frame()
 
+    @property
+    def D(self) -> int:
+        """Return the dimension D (number of dimensions).
+        
+        For a single coordinate [x, y], D = 2 (number of elements).
+        For multiple coordinates [[x1, x2], [y1, y2]], D = 2 (number of rows).
+        
+        Returns:
+            Number of dimensions.
+        """
+        if self.coords.ndim == 1:
+            return len(self.coords)
+        return self.coords.shape[0]
+
+    @property
+    def N(self) -> int:
+        """Return N (number of points/vectors).
+        
+        For a single coordinate [x, y], N = 1.
+        For multiple coordinates [[x1, x2], [y1, y2]], N = 2 (number of columns).
+        
+        Returns:
+            Number of points/vectors.
+        """
+        if self.coords.ndim == 1:
+            return 1
+        return self.coords.shape[1]
+
     def _make_new(self, coords: np.ndarray, frame: Optional[Frame] = None) -> 'Coordinate':
         """Create a new coordinate of the same type as self.
         
