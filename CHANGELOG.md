@@ -2,9 +2,15 @@
 
 ## [Unreleased]
 ### Added
-- `Coordinate` support for ArrayLike inputs (lists, tuples) for `coords` argument in addition to numpy arrays
-- `Coordinate` support for DxN arrays inputs for `coords` argument where D is dimension and N is number of coordinates, allowing batch operations
-- Support for arithemitc operators, the coordinate acting as a numpy array, `__array__`, `__getitem__`, `__setitem__`, `__len__`, `__repr__`, `__add__`, `__radd__`, `__sub__`, `__rsub__`, `__mul__`, `__rmul__`, `__truediv__`, `__rtruediv__`, `__neg__`, `__abs__`, `__eq__`, `__ne__`
+- `Coordinate`: support for ArrayLike inputs (lists, tuples) for `coords` argument in addition to numpy arrays
+- `Coordinate`: support for DxN arrays inputs for `coords` argument where D is dimension and N is number of coordinates, allowing batch operations
+- `Coordinate`: properties `D` and `N` to get dimension and number of coordinates
+- `Frame`: properties `D_in` and `D_out` to get input and output dimensions of the frame's coordinate space
+- `Coordinate`: Support for arithemitc operators, the coordinate acting as a numpy array, `__array__`, `__getitem__`, `__setitem__`, `__len__`, `__repr__`, `__add__`, `__radd__`, `__sub__`, `__rsub__`, `__mul__`, `__rmul__`, `__truediv__`, `__rtruediv__`, `__neg__`, `__abs__`, `__eq__`, `__ne__`
+- `transforms`: projection transforms (dimension-changing) in addition to standard affine transforms, `reduce_dim`, `augment_dim`, `project_xy_to_x`, `project_xy_to_y`, `project_xyz_to_xy`, `project_xyz_to_xz`, `project_xyz_to_yz`, `project_xyz_to_x`, `project_xyz_to_y`, `project_xyz_to_z`,
+- `transforms`: common 3D transformation matrices: `translation3d`, `scaling3d`, `rotation3Dx`, `rotation3Dy`, `rotation3Dz`, 
+- `transforms`: arbitrary dimenstion translation and scaling: `translation`, `scaling`
+
 
 ### Changed
 - Renamed `CoordinateType` to `CoordinateKind`

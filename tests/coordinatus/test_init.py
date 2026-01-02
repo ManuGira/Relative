@@ -7,7 +7,7 @@ class TestPackageImports:
     def test_import_main_classes(self):
         """Test that main classes can be imported from package."""
         from coordinatus import CoordinateKind, Frame, Point, Vector, Coordinate
-        from coordinatus import translate2D
+        from coordinatus.transforms import translate2D
         from coordinatus import create_frame
         
         # Verify they are the expected types

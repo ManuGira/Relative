@@ -29,6 +29,100 @@ class TestFrameInit:
         np.testing.assert_array_equal(child.parent.transform, parent_transform)
 
 
+class TestFrameDimensions:
+    """Tests for Frame.D_in and Frame.D_out properties."""
+
+    def test_D_in_2D_frame(self):
+        """Test D_in for a 2D frame (3x3 transformation matrix)."""
+        frame = Frame(transform=np.eye(3))
+        assert frame.D_in == 2
+
+    def test_D_out_2D_frame(self):
+        """Test D_out for a 2D frame (3x3 transformation matrix)."""
+        frame = Frame(transform=np.eye(3))
+        assert frame.D_out == 2
+
+    def test_D_in_3D_frame(self):
+        """Test D_in for a 3D frame (4x4 transformation matrix)."""
+        frame = Frame(transform=np.eye(4))
+        assert frame.D_in == 3
+
+    def test_D_out_3D_frame(self):
+        """Test D_out for a 3D frame (4x4 transformation matrix)."""
+        frame = Frame(transform=np.eye(4))
+        assert frame.D_out == 3
+
+    def test_D_in_with_translation_2D(self):
+        """Test D_in remains correct with translated 2D frame."""
+        frame = Frame(transform=translate2D(5, 10))
+        assert frame.D_in == 2
+
+    def test_D_out_with_translation_2D(self):
+        """Test D_out remains correct with translated 2D frame."""
+        frame = Frame(transform=translate2D(5, 10))
+        assert frame.D_out == 2
+
+    def test_D_in_with_rotation_2D(self):
+        """Test D_in remains correct with rotated 2D frame."""
+        frame = Frame(transform=rotate2D(np.pi / 4))
+        assert frame.D_in == 2
+
+    def test_D_out_with_rotation_2D(self):
+        """Test D_out remains correct with rotated 2D frame."""
+        frame = Frame(transform=rotate2D(np.pi / 4))
+        assert frame.D_out == 2
+
+    def test_D_in_with_parent(self):
+        """Test D_in is independent of parent frame."""
+        parent = Frame(transform=translate2D(10, 5))
+        child = Frame(transform=rotate2D(np.pi / 2), parent=parent)
+        assert child.D_in == 2
+        assert parent.D_in == 2
+
+    def test_D_out_with_parent(self):
+        """Test D_out is independent of parent frame."""
+        parent = Frame(transform=translate2D(10, 5))
+        child = Frame(transform=rotate2D(np.pi / 2), parent=parent)
+        assert child.D_out == 2
+        assert parent.D_out == 2
+
+    def test_D_in_D_out_equal_for_standard_transforms(self):
+        """Test that D_in equals D_out for standard (non-projection) transformations."""
+        frames = [
+            Frame(transform=np.eye(3)),
+            Frame(transform=translate2D(3, 4)),
+            Frame(transform=rotate2D(np.pi / 3)),
+            Frame(transform=scale2D(2, 3)),
+            Frame(transform=trs2D(5, 10, np.pi / 4, 2, 2)),
+        ]
+        
+        for frame in frames:
+            assert frame.D_in == frame.D_out, "D_in and D_out should be equal for standard transforms"
+
+    def test_D_in_D_out_different_for_projection(self):
+        """Test that D_in != D_out for dimension-changing transformations (projections)."""
+        # Create a 3x4 projection matrix (projects 3D to 2D)
+        projection_3d_to_2d = np.array([[1, 0, 0, 0],
+                                        [0, 1, 0, 0],
+                                        [0, 0, 0, 1]])
+        
+        frame = Frame(transform=projection_3d_to_2d)
+        assert frame.D_in == 3  # Input is 3D
+        assert frame.D_out == 2  # Output is 2D
+        assert frame.D_in != frame.D_out
+
+    def test_D_in_1D_frame(self):
+        """Test D_in for a 1D frame (2x2 transformation matrix)."""
+        frame = Frame(transform=np.eye(2))
+        assert frame.D_in == 1
+
+    def test_D_out_1D_frame(self):
+        """Test D_out for a 1D frame (2x2 transformation matrix)."""
+        frame = Frame(transform=np.eye(2))
+        assert frame.D_out == 1
+
+
+
 class TestFrameEquality:
     """Tests for Frame equality comparison."""
 

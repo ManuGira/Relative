@@ -35,4 +35,5 @@ dev = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/coordinatus/__init__.py" = ["F401"]  # Ignore `F401` (imported but unused)
+"src/coordinatus/transforms/__init__.py" = ["F401"]  # Ignore `F401` (imported but unused)
 

@@ -39,6 +39,53 @@ class Frame:
         self.transform = transform if transform is not None else np.eye(3)
         self.parent = parent
 
+    @property
+    def D_in(self) -> int:
+        """
+        Returns the input dimension of this frame's coordinate space.
+        
+        This represents the dimensionality of points and vectors that are
+        expressed in this frame's local coordinate system (before transformation).
+        For a 3x3 transformation matrix, D_in = 2 (2D space).
+        For a 4x4 transformation matrix, D_in = 3 (3D space).
+        
+        Returns:
+            The number of dimensions in the frame's input space (excludes the
+            homogeneous coordinate).
+        
+        Examples:
+            >>> frame_2d = Frame(transform=np.eye(3))  # 3x3 matrix
+            >>> frame_2d.D_in
+            2
+            >>> frame_3d = Frame(transform=np.eye(4))  # 4x4 matrix
+            >>> frame_3d.D_in
+            3
+        """
+        return self.transform.shape[1] - 1  # Subtract 1 for homogeneous coordinate
+    
+    @property
+    def D_out(self) -> int:
+        """
+        Returns the output dimension of the parent's coordinate space.
+        
+        This represents the dimensionality of the parent frame's coordinate
+        system (after transformation). For standard transformations, D_out equals
+        Din, but dimension-changing transformations (like projections) can have
+        D_out ≠ Din.
+        
+        Returns:
+            The number of dimensions in the parent's coordinate space (excludes
+            the homogeneous coordinate).
+        
+        Examples:
+            >>> frame_2d = Frame(transform=np.eye(3))  # 3x3 matrix
+            >>> frame_2d.D_out
+            2
+            >>> # For a projection from 3D to 2D (3x4 matrix):
+            >>> # D_out would be 2, Din would be 3
+        """
+        return self.transform.shape[0] - 1  # Subtract 1 for homogeneous coordinate
+
     def __eq__(self, other):
         """Check if two frames are equal.
         

@@ -2,8 +2,8 @@
 
 # Import main classes and functions for convenient access
 from .types import CoordinateKind
-from .transforms import translate2D, rotate2D, scale2D, shear2D, trs2D, trks2D
 from .frame import Frame, create_frame
+from . import transforms  # allows access to `coordinatus.transforms.translate2D(1, 2)``
 from .coordinate import Coordinate, Point, Vector, transform_coordinate
 
 # Visualization is optional - only available if matplotlib is installed
