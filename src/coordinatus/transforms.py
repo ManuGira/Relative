@@ -66,7 +66,7 @@ def reduce_dim(initial_dim: int) -> np.ndarray:
     """
     proj = np.eye(initial_dim + 1)
     projection_axis = initial_dim - 1
-    proj = np.delete(proj, projection_axis, axis=0)  # Remove the specified
+    proj = np.delete(proj, projection_axis, axis=0)
     return proj
 
 
@@ -134,3 +134,12 @@ def project_xyz_to_z() -> np.ndarray:
     x_axis = 0
     z_axis = 2
     return reduce_dim(2) @ reduce_dim(3) @ swap_axes(3, x_axis, z_axis)
+
+def augment_dim(initial_dim: int) -> np.ndarray:
+    """
+    Creates a matrix that adds an extra dimension to the space.
+    The returned matrix has shape (initial_dim + 2, initial_dim + 1) suitable for homogeneous coordinates.
+    """
+    add_dim = np.eye(initial_dim + 2)
+    add_dim = np.delete(add_dim, initial_dim, axis=1)
+    return add_dim

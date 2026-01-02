@@ -12,7 +12,8 @@ from coordinatus.transforms import (
     project_xyz_to_y,
     project_xyz_to_z,
     project_xy_to_x, 
-    project_xy_to_y, 
+    project_xy_to_y,
+    augment_dim,
 )
 
 
@@ -822,3 +823,172 @@ class TestProjectXYZToZ:
         expected = np.array([3, 0])  # Keep only z component
         np.testing.assert_array_equal(result, expected)
 
+
+class TestAugmentDim:
+    """Tests for the augment_dim function."""
+
+    def test_augment_dim_shape_1d(self):
+        """Test augment_dim shape for 1D."""
+        A = augment_dim(1)
+        
+        # Should be (initial_dim + 2) x (initial_dim + 1) = 3x2
+        assert A.shape == (3, 2)
+
+    def test_augment_dim_shape_2d(self):
+        """Test augment_dim shape for 2D."""
+        A = augment_dim(2)
+        
+        # Should be (initial_dim + 2) x (initial_dim + 1) = 4x3
+        assert A.shape == (4, 3)
+
+    def test_augment_dim_shape_3d(self):
+        """Test augment_dim shape for 3D."""
+        A = augment_dim(3)
+        
+        # Should be (initial_dim + 2) x (initial_dim + 1) = 5x4
+        assert A.shape == (5, 4)
+
+    def test_augment_dim_structure_1d(self):
+        """Test the structure of augment_dim matrix for 1D."""
+        A = augment_dim(1)
+        
+        # Should be 3x2 matrix with identity structure but middle column removed
+        expected = np.array([[1, 0],
+                            [0, 0],
+                            [0, 1]])
+        np.testing.assert_array_equal(A, expected)
+
+    def test_augment_dim_structure_2d(self):
+        """Test the structure of augment_dim matrix for 2D."""
+        A = augment_dim(2)
+        
+        # Should be 4x3 matrix - identity with middle column (index 2) removed
+        expected = np.array([[1, 0, 0],
+                            [0, 1, 0],
+                            [0, 0, 0],
+                            [0, 0, 1]])
+        np.testing.assert_array_equal(A, expected)
+
+    def test_augment_dim_structure_3d(self):
+        """Test the structure of augment_dim matrix for 3D."""
+        A = augment_dim(3)
+        
+        # Should be 5x4 matrix - identity with middle column (index 3) removed
+        expected = np.array([[1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 0],
+                            [0, 0, 0, 1]])
+        np.testing.assert_array_equal(A, expected)
+
+    def test_augment_dim_transform_1d_point(self):
+        """Test augmenting a 1D point in homogeneous coords."""
+        A = augment_dim(1)
+        point_1d = np.array([5, 1])  # 1D point in homogeneous coords
+        
+        result = A @ point_1d
+        
+        # Should add a zero dimension in the middle
+        expected = np.array([5, 0, 1])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_augment_dim_transform_2d_point(self):
+        """Test augmenting a 2D point in homogeneous coords."""
+        A = augment_dim(2)
+        point_2d = np.array([3, 7, 1])  # 2D point in homogeneous coords
+        
+        result = A @ point_2d
+        
+        # Should add a zero dimension in the middle
+        expected = np.array([3, 7, 0, 1])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_augment_dim_transform_3d_point(self):
+        """Test augmenting a 3D point in homogeneous coords."""
+        A = augment_dim(3)
+        point_3d = np.array([2, 4, 6, 1])  # 3D point in homogeneous coords
+        
+        result = A @ point_3d
+        
+        # Should add a zero dimension in the middle
+        expected = np.array([2, 4, 6, 0, 1])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_augment_dim_vector_1d(self):
+        """Test augmenting a 1D vector."""
+        A = augment_dim(1)
+        vector = np.array([5, 0])  # 1D vector (w=0)
+        
+        result = A @ vector
+        
+        # Should add a zero dimension
+        expected = np.array([5, 0, 0])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_augment_dim_vector_2d(self):
+        """Test augmenting a 2D vector."""
+        A = augment_dim(2)
+        vector = np.array([1, 2, 0])  # 2D vector (w=0)
+        
+        result = A @ vector
+        
+        # Should add a zero dimension
+        expected = np.array([1, 2, 0, 0])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_augment_dim_multiple_points(self):
+        """Test augmenting multiple points at once."""
+        A = augment_dim(2)
+        
+        # Multiple 2D points in homogeneous coords (3xN array)
+        points = np.array([[1, 2, 3],
+                          [4, 5, 6],
+                          [1, 1, 1]])
+        
+        result = A @ points
+        
+        # Should add a row of zeros before the last row
+        expected = np.array([[1, 2, 3],
+                            [4, 5, 6],
+                            [0, 0, 0],
+                            [1, 1, 1]])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_augment_dim_inserts_dimension_before_homogeneous(self):
+        """Test that augment_dim inserts the new dimension before the homogeneous coordinate."""
+        A = augment_dim(2)
+        
+        # The structure should have zeros in the (initial_dim) row
+        assert A[2, 0] == 0
+        assert A[2, 1] == 0
+        assert A[2, 2] == 0
+        
+        # The last row should be [0, 0, 1] (homogeneous coordinate preserved)
+        assert A[3, 0] == 0
+        assert A[3, 1] == 0
+        assert A[3, 2] == 1
+
+    def test_augment_dim_composition_with_reduce_dim(self):
+        """Test composing augment_dim with reduce_dim."""
+        A = augment_dim(2)  # 4x3
+        R = reduce_dim(3)   # 3x4
+        
+        # R @ A should give identity (reducing then augmenting)
+        composed = R @ A
+        
+        expected = np.eye(3)
+        np.testing.assert_array_equal(composed, expected)
+
+    def test_augment_dim_zero_dimension_location(self):
+        """Test that the zero dimension is inserted at the correct position."""
+        A = augment_dim(1)
+        
+        # For initial_dim=1, the zero should be at index 1 (row 1)
+        assert A[1, 0] == 0
+        assert A[1, 1] == 0
+        
+        A = augment_dim(2)
+        # For initial_dim=2, the zero should be at index 2 (row 2)
+        assert A[2, 0] == 0
+        assert A[2, 1] == 0
+        assert A[2, 2] == 0
