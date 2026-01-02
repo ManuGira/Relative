@@ -1,7 +1,10 @@
 """Unit tests for transformation matrix functions."""
 
 import numpy as np
-from coordinatus.transforms import translate2D, rotate2D, scale2D, shear2D, trs2D, trks2D
+from coordinatus.transforms import (
+    translate2D, rotate2D, scale2D, shear2D, trs2D, trks2D,
+    projection, projection2D_to_1D, projection3D_to_2D
+)
 
 
 class TestTranslate2D:
@@ -411,3 +414,214 @@ class TestTRKS2D:
         
         # Shape should be 3x3
         assert M.shape == (3, 3)
+
+
+class TestProjection:
+    """Tests for the projection function."""
+
+    def test_projection_2d_to_1d_remove_x(self):
+        """Test projection from 2D to 1D by removing x-axis (axis 0)."""
+        P = projection(2, 0)
+        
+        # Should be a 2x3 matrix (removes one dimension from 2D + homogeneous)
+        assert P.shape == (2, 3)
+        
+        # Should be identity with axis 0 row removed
+        expected = np.array([[0, 1, 0],
+                            [0, 0, 1]])
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection_2d_to_1d_remove_y(self):
+        """Test projection from 2D to 1D by removing y-axis (axis 1)."""
+        P = projection(2, 1)
+        
+        # Should be a 2x3 matrix
+        assert P.shape == (2, 3)
+        
+        # Should be identity with axis 1 row removed
+        expected = np.array([[1, 0, 0],
+                            [0, 0, 1]])
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection_3d_to_2d_remove_x(self):
+        """Test projection from 3D to 2D by removing x-axis (axis 0)."""
+        P = projection(3, 0)
+        
+        # Should be a 3x4 matrix
+        assert P.shape == (3, 4)
+        
+        # Should be identity with axis 0 row removed
+        expected = np.array([[0, 1, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1]])
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection_3d_to_2d_remove_y(self):
+        """Test projection from 3D to 2D by removing y-axis (axis 1)."""
+        P = projection(3, 1)
+        
+        # Should be a 3x4 matrix
+        assert P.shape == (3, 4)
+        
+        expected = np.array([[1, 0, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1]])
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection_3d_to_2d_remove_z(self):
+        """Test projection from 3D to 2D by removing z-axis (axis 2)."""
+        P = projection(3, 2)
+        
+        # Should be a 3x4 matrix
+        assert P.shape == (3, 4)
+        
+        expected = np.array([[1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 0, 1]])
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection_2d_point_remove_x(self):
+        """Test projection of a 2D point onto 1D by removing x-axis."""
+        P = projection(2, 0)
+        point = np.array([3, 5, 1])  # Point at (3, 5) in homogeneous coords
+        
+        result = P @ point
+        
+        # Should keep only y and weight
+        expected = np.array([5, 1])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_projection_2d_point_remove_y(self):
+        """Test projection of a 2D point onto 1D by removing y-axis."""
+        P = projection(2, 1)
+        point = np.array([3, 5, 1])  # Point at (3, 5) in homogeneous coords
+        
+        result = P @ point
+        
+        # Should keep only x and weight
+        expected = np.array([3, 1])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_projection_3d_point_remove_z(self):
+        """Test projection of a 3D point onto 2D by removing z-axis."""
+        P = projection(3, 2)
+        point = np.array([2, 4, 7, 1])  # Point at (2, 4, 7) in homogeneous coords
+        
+        result = P @ point
+        
+        # Should keep x, y, and weight
+        expected = np.array([2, 4, 1])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_projection_vector_not_affected_by_weight(self):
+        """Test that projection works correctly for vectors (w=0)."""
+        P = projection(2, 0)
+        vector = np.array([3, 5, 0])  # Vector in homogeneous coords
+        
+        result = P @ vector
+        
+        # Should keep only y component and weight
+        expected = np.array([5, 0])
+        np.testing.assert_array_equal(result, expected)
+
+    def test_projection_assertion_error(self):
+        """Test that projection raises assertion error for invalid axis."""
+        try:
+            projection(2, 2)  # axis >= initial_dim
+            assert False, "Should have raised AssertionError"
+        except AssertionError as e:
+            assert "Initial dimension must be greater than the axis" in str(e)
+
+    def test_projection_multiple_points_2d_to_1d(self):
+        """Test projection of multiple 2D points to 1D."""
+        P = projection(2, 1)  # Remove y-axis
+        
+        # Multiple points: (1,2), (3,4), (5,6) in homogeneous coords
+        points = np.array([[1, 3, 5],
+                          [2, 4, 6],
+                          [1, 1, 1]])
+        
+        result = P @ points
+        
+        # Should keep only x-coordinates and weights
+        expected = np.array([[1, 3, 5],
+                            [1, 1, 1]])
+        np.testing.assert_array_equal(result, expected)
+
+
+class TestProjection2DTo1D:
+    """Tests for the projection2D_to_1D convenience function."""
+
+    def test_projection2d_to_1d_axis_0(self):
+        """Test 2D to 1D projection removing x-axis."""
+        P = projection2D_to_1D(0)
+        
+        assert P.shape == (2, 3)
+        expected = projection(2, 0)
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection2d_to_1d_axis_1(self):
+        """Test 2D to 1D projection removing y-axis."""
+        P = projection2D_to_1D(1)
+        
+        assert P.shape == (2, 3)
+        expected = projection(2, 1)
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection2d_to_1d_transform_point(self):
+        """Test that projection2D_to_1D correctly transforms a point."""
+        P = projection2D_to_1D(0)  # Remove x-axis, keep y
+        point = np.array([10, 20, 1])
+        
+        result = P @ point
+        
+        expected = np.array([20, 1])  # Only y-coordinate remains
+        np.testing.assert_array_equal(result, expected)
+
+
+class TestProjection3DTo2D:
+    """Tests for the projection3D_to_2D convenience function."""
+
+    def test_projection3d_to_2d_axis_0(self):
+        """Test 3D to 2D projection removing x-axis."""
+        P = projection3D_to_2D(0)
+        
+        assert P.shape == (3, 4)
+        expected = projection(3, 0)
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection3d_to_2d_axis_1(self):
+        """Test 3D to 2D projection removing y-axis."""
+        P = projection3D_to_2D(1)
+        
+        assert P.shape == (3, 4)
+        expected = projection(3, 1)
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection3d_to_2d_axis_2(self):
+        """Test 3D to 2D projection removing z-axis."""
+        P = projection3D_to_2D(2)
+        
+        assert P.shape == (3, 4)
+        expected = projection(3, 2)
+        np.testing.assert_array_equal(P, expected)
+
+    def test_projection3d_to_2d_transform_point(self):
+        """Test that projection3D_to_2D correctly transforms a point."""
+        P = projection3D_to_2D(2)  # Remove z-axis, keep x and y
+        point = np.array([5, 10, 15, 1])
+        
+        result = P @ point
+        
+        expected = np.array([5, 10, 1])  # Only x and y remain
+        np.testing.assert_array_equal(result, expected)
+
+    def test_projection3d_to_2d_transform_vector(self):
+        """Test that projection3D_to_2D correctly transforms a vector."""
+        P = projection3D_to_2D(0)  # Remove x-axis
+        vector = np.array([1, 2, 3, 0])  # Vector in homogeneous coords
+        
+        result = P @ vector
+        
+        expected = np.array([2, 3, 0])  # Only y, z, and weight remain
+        np.testing.assert_array_equal(result, expected)
