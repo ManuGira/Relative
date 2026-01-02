@@ -4,7 +4,7 @@ import numpy as np
 
 from .translate import translate, translate2D, translate3D
 from .rotate import rotate2D
-from .scale import scale2D, shear2D
+from .scale import scale, scale2D, scale3D, shear2D
 from .dimension import (
     swap_axes,
     reduce_dim,
