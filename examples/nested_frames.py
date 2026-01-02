@@ -51,8 +51,8 @@ def main():
         for x, y in local_points:
             point = Point(np.array([x, y]), frame=frame)
             absolute = point.to_absolute()
-            frame_points.append((absolute.local_coords[0], absolute.local_coords[1]))
-            all_absolute_points.append((absolute.local_coords[0], absolute.local_coords[1]))
+            frame_points.append((absolute.coords[0], absolute.coords[1]))
+            all_absolute_points.append((absolute.coords[0], absolute.coords[1]))
             frame_labels.append(frame_idx)
         
         print(f"Frame {frame_idx} absolute points:")

@@ -1,3 +1,27 @@
+- [Coordinatus](#coordinatus)
+  - [Why Coordinatus?](#why-coordinatus)
+  - [Installation with uv](#installation-with-uv)
+    - [Installing the Development Version](#installing-the-development-version)
+    - [Optional: Visualization Support](#optional-visualization-support)
+  - [Quick Start](#quick-start)
+  - [Core Concepts](#core-concepts)
+    - [Frames](#frames)
+    - [Points vs Vectors](#points-vs-vectors)
+    - [Coordinate Conversion](#coordinate-conversion)
+  - [The Relativity of Coordinates](#the-relativity-of-coordinates)
+    - [View from Frame 1](#view-from-frame-1)
+    - [View from Absolute Space](#view-from-absolute-space)
+    - [View from Frame 2](#view-from-frame-2)
+  - [API Overview](#api-overview)
+    - [Creating Frames](#creating-frames)
+    - [Transformation Utilities](#transformation-utilities)
+    - [Visualization (Optional)](#visualization-optional)
+  - [Examples](#examples)
+  - [Testing](#testing)
+  - [License](#license)
+
+
+
 # Coordinatus
 
 **Simple coordinate transformations with hierarchical frames**
@@ -12,6 +36,33 @@ Ever needed to convert coordinates between different spaces?  *Coordinatus* make
 - **Hierarchical Frames**: Build parent-child relationships just like scene graphs in game engines
 - **Clean transformations**: Simple functions for translation, rotation, and scaling
 - **Type-safe**: Points and Vectors are distinct types with correct transformation behavior
+
+## Installation with uv
+Modern python package manager [uv](https://docs.astral.sh/uv/) is recommended for managing dependencies, but pip can also be used (simply replace `uv add` with `pip install` in example below).
+
+```bash
+uv add coordinatus
+```
+
+### Installing the Development Version
+
+To install the latest development version from the `develop` branch:
+
+**Using uv:**
+```bash
+uv add git+https://github.com/ManuGira/Coordinatus.git@develop
+```
+
+### Optional: Visualization Support
+
+For plotting and visualization features (used in examples):
+
+**Using uv:**
+```bash
+uv add coordinatus[plotting]
+```
+
+This installs matplotlib for the `coordinatus.visualization` module.
 
 ## Quick Start
 
@@ -32,7 +83,7 @@ wheel = create_frame(parent=car, tx=10, ty=0)
 point_in_wheel = Point(x=0, y=0, frame=wheel)
 
 # Convert to world coordinates
-point_in_world = point_in_wheel.as_absolute()
+point_in_world = point_in_wheel.to_absolute()
 print(f"Wheel center in world: ({point_in_world.x}, {point_in_world.y})")
 
 # Convert between any two frames
@@ -56,11 +107,11 @@ frame = create_frame(parent=None, tx=10, ty=5)
 
 # Point gets translated
 point = Point(x=0, y=0, frame=frame)
-absolute = point.as_absolute()  # (10, 5)
+absolute = point.to_absolute()  # (10, 5)
 
 # Vector does NOT get translated
 vector = Vector(x=1, y=0, frame=frame)
-absolute_vec = vector.as_absolute()  # (1, 0) - only rotation/scale applied
+absolute_vec = vector.to_absolute()  # (1, 0) - only rotation/scale applied
 ```
 
 ### Coordinate Conversion
@@ -73,7 +124,7 @@ point_in_a = Point(np.array([5, 3]), frame=frame_a)
 point_in_b = point_in_a.relative_to(frame_b)
 
 # Or get absolute (world) coordinates
-point_in_world = point_in_a.as_absolute()
+point_in_world = point_in_a.to_absolute()
 ```
 
 ## The Relativity of Coordinates
@@ -99,21 +150,6 @@ From Frame 2's perspective, Frame 2 is now at the origin with standard axes. The
 
 **Key insight:** Coordinates are not absolute—they depend on the observer. The F shape's numerical coordinates change in each view, but the shape's position in physical space remains constant. This is the essence of relative coordinate systems.
 
-## Installation
-
-```bash
-pip install coordinatus
-```
-
-### Optional: Visualization Support
-
-For plotting and visualization features (used in examples):
-
-```bash
-pip install coordinatus[plotting]
-```
-
-This installs matplotlib for the `coordinatus.visualization` module.
 
 ## API Overview
 
@@ -166,7 +202,7 @@ draw_points(ax, [point1, point2], color='red')
 plt.show()
 ```
 
-**Note:** Requires `pip install coordinatus[plotting]`
+**Note:** Requires `uv add coordinatus[plotting]`
 
 ## Examples
 

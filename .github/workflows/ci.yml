@@ -95,24 +95,24 @@ jobs:
       id: ruff
       run: |
         uv add --dev ruff
-        uv run ruff check src tests
+        uv run ruff check .
       continue-on-error: true
 
-    - name: Type check with mypy
-      id: mypy
+    - name: Type check with ty
+      id: ty
       run: |
-        uv add --dev mypy
-        uv run mypy src --ignore-missing-imports
+        uv add --dev ty
+        uv run ty check .
       continue-on-error: true
 
     - name: Check lint results
-      if: steps.ruff.outcome == 'failure' || steps.mypy.outcome == 'failure'
+      if: steps.ruff.outcome == 'failure' || steps.ty.outcome == 'failure'
       run: |
         echo "❌ Linting failed:"
         if [ "${{ steps.ruff.outcome }}" == "failure" ]; then
           echo "  - Ruff found issues (see 'Check code formatting with ruff' for details)"
         fi
-        if [ "${{ steps.mypy.outcome }}" == "failure" ]; then
-          echo "  - Mypy found issues (see 'Type check with mypy' for details)"
+        if [ "${{ steps.ty.outcome }}" == "failure" ]; then
+          echo "  - Ty found issues (see 'Type check with ty' for details)"
         fi
         exit 1

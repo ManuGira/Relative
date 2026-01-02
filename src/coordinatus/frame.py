@@ -39,6 +39,85 @@ class Frame:
         self.transform = transform if transform is not None else np.eye(3)
         self.parent = parent
 
+    @property
+    def D_in(self) -> int:
+        """
+        Returns the input dimension of this frame's coordinate space.
+        
+        This represents the dimensionality of points and vectors that are
+        expressed in this frame's local coordinate system (before transformation).
+        For a 3x3 transformation matrix, D_in = 2 (2D space).
+        For a 4x4 transformation matrix, D_in = 3 (3D space).
+        
+        Returns:
+            The number of dimensions in the frame's input space (excludes the
+            homogeneous coordinate).
+        
+        Examples:
+            >>> frame_2d = Frame(transform=np.eye(3))  # 3x3 matrix
+            >>> frame_2d.D_in
+            2
+            >>> frame_3d = Frame(transform=np.eye(4))  # 4x4 matrix
+            >>> frame_3d.D_in
+            3
+        """
+        return self.transform.shape[1] - 1  # Subtract 1 for homogeneous coordinate
+    
+    @property
+    def D_out(self) -> int:
+        """
+        Returns the output dimension of the parent's coordinate space.
+        
+        This represents the dimensionality of the parent frame's coordinate
+        system (after transformation). For standard transformations, D_out equals
+        Din, but dimension-changing transformations (like projections) can have
+        D_out ≠ Din.
+        
+        Returns:
+            The number of dimensions in the parent's coordinate space (excludes
+            the homogeneous coordinate).
+        
+        Examples:
+            >>> frame_2d = Frame(transform=np.eye(3))  # 3x3 matrix
+            >>> frame_2d.D_out
+            2
+            >>> # For a projection from 3D to 2D (3x4 matrix):
+            >>> # D_out would be 2, Din would be 3
+        """
+        return self.transform.shape[0] - 1  # Subtract 1 for homogeneous coordinate
+
+    def __eq__(self, other):
+        """Check if two frames are equal.
+        
+        Two frames are considered equal if:
+        1. They are the same object (same reference), OR
+        2. Both have no parent and both have identity transforms
+        
+        This allows coordinates in identity/absolute frames to be operated on together.
+        
+        Args:
+            other: Another Frame object to compare with.
+        
+        Returns:
+            True if frames are considered equal, False otherwise.
+        """
+        if not isinstance(other, Frame):
+            return False
+        
+        # Same object reference
+        if self is other:
+            return True
+        
+        # Both are identity frames (no parent and identity transform)
+        if self.parent is None and other.parent is None:
+            return np.allclose(self.transform, np.eye(3)) and np.allclose(other.transform, np.eye(3))
+        
+        return False
+
+    def __ne__(self, other):
+        """Check if two frames are not equal."""
+        return not self.__eq__(other)
+
     def compute_absolute_transform(self) -> np.ndarray:
         """Computes the cumulative transformation matrix from this frame to absolute space.
         
@@ -85,7 +164,7 @@ class Frame:
         return inv_transform @ self.compute_absolute_transform()
 
 
-def create_frame(parent: Optional[Frame], tx: float=0.0, ty: float=0.0, angle_rad: float=0.0, sx: float=1.0, sy: float=1.0) -> Frame:
+def create_frame(parent: Optional[Frame]=None, tx: float=0.0, ty: float=0.0, angle_rad: float=0.0, sx: float=1.0, sy: float=1.0) -> Frame:
     """Factory function to create a coordinate frame using TRS (Translation-Rotation-Scale) parameters.
     
     Convenience function that constructs a coordinate frame from intuitive transformation

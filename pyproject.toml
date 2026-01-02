@@ -1,6 +1,6 @@
 [project]
 name = "coordinatus"
-version = "0.2.0"
+version = "0.3.0"
 description = "A library for working with hierarchical coordinate systems and transformations"
 readme = "README.md"
 authors = [
@@ -27,11 +27,13 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "matplotlib>=3.10.8",
-    "mypy>=1.19.1",
     "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.14.10",
+    "ty>=0.0.8",
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "src/coordinatus/__init__.py" = ["F401"]  # Ignore `F401` (imported but unused)
+"src/coordinatus/transforms/__init__.py" = ["F401"]  # Ignore `F401` (imported but unused)
 

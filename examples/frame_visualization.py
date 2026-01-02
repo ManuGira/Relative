@@ -61,17 +61,17 @@ def main():
     
     print("\nIn Absolute Space:")
     for i, p in enumerate(points, 1):
-        abs_coords = p.to_absolute().local_coords
+        abs_coords = p.to_absolute().coords
         print(f"  P{i}: ({abs_coords[0]:.3f}, {abs_coords[1]:.3f})")
     
     print("\nIn Frame 1 (original):")
     for i, p in enumerate(points, 1):
-        f1_coords = p.relative_to(frame1).local_coords
+        f1_coords = p.relative_to(frame1).coords
         print(f"  P{i}: ({f1_coords[0]:.3f}, {f1_coords[1]:.3f})")
     
     print("\nIn Frame 2:")
     for i, p in enumerate(points, 1):
-        f2_coords = p.relative_to(frame2).local_coords
+        f2_coords = p.relative_to(frame2).coords
         print(f"  P{i}: ({f2_coords[0]:.3f}, {f2_coords[1]:.3f})")
     
     # Create visualization with 3 subplots
