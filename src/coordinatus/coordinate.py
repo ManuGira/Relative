@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .frame import Frame
+from .space import Space
 from .types import CoordinateKind
 
 
@@ -75,27 +75,27 @@ def transform_coordinate(transform: np.ndarray, coordinates: np.ndarray, kind: C
 
 
 class Coordinate:
-    """Base class for representing coordinates (points or vectors) in a coordinate frame.
+    """Base class for representing coordinates (points or vectors) in a coordinate space.
     
-    Coordinates can be defined in any coordinate frame and converted between frames.
+    Coordinates can be defined in any coordinate space and converted between spaces.
     The distinction between points and vectors is crucial:
     - Points: Represent positions, affected by all transformations including translation
     - Vectors: Represent directions/displacements, unaffected by translation
     
     Attributes:
         kind: CoordinateKind.POINT or CoordinateKind.VECTOR
-        coords: 2D numpy array [x, y] in the local coordinate frame
-        frame: The coordinate frame this coordinate is defined in
+        coords: 2D numpy array [x, y] in the local coordinate space
+        space: The coordinate space this coordinate is defined in
     
     Examples:
-        >>> frame = Frame(transform=translate2D(5, 3))
-        >>> coord = Coordinate(CoordinateKind.POINT, np.array([1, 2]), frame)
-        >>> coord = Coordinate(CoordinateKind.POINT, [1, 2], frame)  # list also works
-        >>> coord = Coordinate(CoordinateKind.POINT, (1, 2), frame)  # tuple also works
+        >>> space = Space(transform=translate2D(5, 3))
+        >>> coord = Coordinate(CoordinateKind.POINT, np.array([1, 2]), space)
+        >>> coord = Coordinate(CoordinateKind.POINT, [1, 2], space)  # list also works
+        >>> coord = Coordinate(CoordinateKind.POINT, (1, 2), space)  # tuple also works
         >>> absolute_coord = coord.to_absolute()
     """
 
-    def __init__(self, kind: CoordinateKind, coords: ArrayLike, frame: Optional[Frame] = None):
+    def __init__(self, kind: CoordinateKind, coords: ArrayLike, space: Optional[Space] = None):
         """Initialize a coordinate.
         
         Args:
@@ -103,12 +103,12 @@ class Coordinate:
             coords: Array-like (numpy array, list, tuple, etc.) representing coordinates.
                          Can be [x, y] for a single point/vector or [[x1, x2, ...], [y1, y2, ...]]
                          for multiple points/vectors.
-            frame: Coordinate frame this coordinate is defined in.
-                   If None, uses absolute/identity frame.
+            space: Coordinate space this coordinate is defined in.
+                   If None, uses absolute/identity space.
         """
         self.kind = kind
         self.coords = np.asarray(coords)
-        self.frame = frame if frame is not None else Frame()
+        self.space = space if space is not None else Space()
 
     @property
     def D(self) -> int:
@@ -138,7 +138,7 @@ class Coordinate:
             return 1
         return self.coords.shape[1]
 
-    def _make_new(self, coords: np.ndarray, frame: Optional[Frame] = None) -> 'Coordinate':
+    def _make_new(self, coords: np.ndarray, space: Optional[Space] = None) -> 'Coordinate':
         """Create a new coordinate of the same type as self.
         
         Helper method to handle the different constructors between Coordinate and its subclasses.
@@ -146,19 +146,19 @@ class Coordinate:
         
         Args:
             coords: The coordinate values.
-            frame: The coordinate frame. If not provided, uses self.frame.
-                  Pass Frame() explicitly for identity frame.
+            space: The coordinate space. If not provided, uses self.space.
+                  Pass Space() explicitly for identity space.
         
         Returns:
-            A new instance of the same type as self with the given coords and frame.
+            A new instance of the same type as self with the given coords and space.
         """
-        if frame is None:
-            frame = self.frame
+        if space is None:
+            space = self.space
         if type(self) is Coordinate:
-            return Coordinate(kind=self.kind, coords=coords, frame=frame)
+            return Coordinate(kind=self.kind, coords=coords, space=space)
         else:
             # Point and Vector constructors don't take 'kind'
-            return type(self)(coords=coords, frame=frame)  # type: ignore[call-arg]
+            return type(self)(coords=coords, space=space)  # type: ignore[call-arg]
 
     def __array__(self, dtype=None):
         """Return the underlying numpy array for numpy operations."""
@@ -180,14 +180,14 @@ class Coordinate:
 
     def __repr__(self):
         """String representation of the coordinate."""
-        return f"{self.__class__.__name__}(coords={self.coords!r}, frame={self.frame!r})"
+        return f"{self.__class__.__name__}(coords={self.coords!r}, space={self.space!r})"
 
     # Arithmetic operators
     def __add__(self, other):
         """Add coordinates or arrays."""
         if isinstance(other, Coordinate):
-            if self.frame != other.frame:
-                raise ValueError("Cannot add coordinates from different frames. Convert to same frame first.")
+            if self.space != other.space:
+                raise ValueError("Cannot add coordinates from different spaces. Convert to same space first.")
             new_coords = self.coords + other.coords
         else:
             new_coords = self.coords + other
@@ -201,8 +201,8 @@ class Coordinate:
     def __sub__(self, other):
         """Subtract coordinates or arrays."""
         if isinstance(other, Coordinate):
-            if self.frame != other.frame:
-                raise ValueError("Cannot subtract coordinates from different frames. Convert to same frame first.")
+            if self.space != other.space:
+                raise ValueError("Cannot subtract coordinates from different spaces. Convert to same space first.")
             new_coords = self.coords - other.coords
         else:
             new_coords = self.coords - other
@@ -216,8 +216,8 @@ class Coordinate:
     def __mul__(self, other):
         """Multiply coordinates or arrays."""
         if isinstance(other, Coordinate):
-            if self.frame != other.frame:
-                raise ValueError("Cannot multiply coordinates from different frames. Convert to same frame first.")
+            if self.space != other.space:
+                raise ValueError("Cannot multiply coordinates from different spaces. Convert to same space first.")
             new_coords = self.coords * other.coords
         else:
             new_coords = self.coords * other
@@ -231,8 +231,8 @@ class Coordinate:
     def __truediv__(self, other):
         """Divide coordinates or arrays."""
         if isinstance(other, Coordinate):
-            if self.frame != other.frame:
-                raise ValueError("Cannot divide coordinates from different frames. Convert to same frame first.")
+            if self.space != other.space:
+                raise ValueError("Cannot divide coordinates from different spaces. Convert to same space first.")
             new_coords = self.coords / other.coords
         else:
             new_coords = self.coords / other
@@ -265,52 +265,52 @@ class Coordinate:
         return not self.__eq__(other)
 
     def to_absolute(self) -> 'Coordinate':
-        """Converts this coordinate to absolute (identity) coordinate frame.
+        """Converts this coordinate to absolute (identity) coordinate space.
         
-        Applies the cumulative transformation from this coordinate's frame through
-        all parent frames to express the coordinate in absolute space.
+        Applies the cumulative transformation from this coordinate's space through
+        all parent spaces to express the coordinate in absolute space.
         
         Returns:
-            New Coordinate with coordinates expressed in absolute frame.
+            New Coordinate with coordinates expressed in absolute space.
         
         Examples:
-            >>> root = Frame(transform=translate2D(10, 5))
-            >>> child = Frame(transform=translate2D(3, 2), parent=root)
-            >>> point = Point(np.array([1, 1]), frame=child)
+            >>> root = Space(transform=translate2D(10, 5))
+            >>> child = Space(transform=translate2D(3, 2), parent=root)
+            >>> point = Point(np.array([1, 1]), space=child)
             >>> absolute_point = point.to_absolute()
             >>> absolute_point.coords  # Should be [14, 8]
         """
-        absolute_transform = self.frame.compute_absolute_transform()
+        absolute_transform = self.space.compute_absolute_transform()
         absolute_coords = transform_coordinate(absolute_transform, self.coords, self.kind)
-        return self._make_new(absolute_coords, frame=Frame())
+        return self._make_new(absolute_coords, space=Space())
         
-    def relative_to(self, target_frame: Frame) -> 'Coordinate':
-        """Converts this coordinate to a different coordinate frame.
+    def relative_to(self, target_space: Space) -> 'Coordinate':
+        """Converts this coordinate to a different coordinate space.
         
-        Transforms the coordinate from its current frame to the target frame,
+        Transforms the coordinate from its current space to the target space,
         properly handling the coordinate type (point vs vector) semantics.
         
         Args:
-            target_frame: The destination coordinate frame.
+            target_space: The destination coordinate space.
         
         Returns:
-            New Coordinate with coordinates expressed in the target frame.
+            New Coordinate with coordinates expressed in the target space.
         
         Examples:
-            >>> frame_a = Frame(transform=translate2D(5, 0))
-            >>> frame_b = Frame(transform=translate2D(0, 3))
-            >>> point_in_a = Point(np.array([0, 0]), frame=frame_a)
-            >>> point_in_b = point_in_a.relative_to(frame_b)
+            >>> space_a = Space(transform=translate2D(5, 0))
+            >>> space_b = Space(transform=translate2D(0, 3))
+            >>> point_in_a = Point(np.array([0, 0]), space=space_a)
+            >>> point_in_b = point_in_a.relative_to(space_b)
             >>> point_in_b.coords  # Should be [5, -3]
         """
-        # Inverse transform from absolute to target frame
-        relative_transform = self.frame.compute_relative_transform_to(target_frame)
+        # Inverse transform from absolute to target space
+        relative_transform = self.space.compute_relative_transform_to(target_space)
         relative_coords = transform_coordinate(relative_transform, self.coords, self.kind)
-        return self._make_new(relative_coords, frame=target_frame)
+        return self._make_new(relative_coords, space=target_space)
 
 
 class Point(Coordinate):
-    """Represents a point (position) in a coordinate frame.
+    """Represents a point (position) in a coordinate space.
     
     Points are affected by all transformations including translation, rotation, and scaling.
     Use this class to represent positions in space.
@@ -318,27 +318,27 @@ class Point(Coordinate):
     Args:
         coords: Array-like (numpy array, list, tuple) [x, y] representing the point position,
                      or [[x1, x2, ...], [y1, y2, ...]] for multiple points.
-        frame: Coordinate frame this point is defined in. If None, uses absolute frame.
+        space: Coordinate space this point is defined in. If None, uses absolute space.
     
     Examples:
-        >>> # Point at origin in a translated frame
-        >>> frame = Frame(transform=translate2D(10, 5))
-        >>> point = Point([0, 0], frame=frame)  # list works
-        >>> point = Point((0, 0), frame=frame)  # tuple works
-        >>> point = Point(np.array([0, 0]), frame=frame)  # numpy array works
+        >>> # Point at origin in a translated space
+        >>> space = Space(transform=translate2D(10, 5))
+        >>> point = Point([0, 0], space=space)  # list works
+        >>> point = Point((0, 0), space=space)  # tuple works
+        >>> point = Point(np.array([0, 0]), space=space)  # numpy array works
         >>> absolute_point = point.to_absolute()
         >>> absolute_point.coords  # [10, 5] - affected by translation
     """
     
-    def __init__(self, coords: ArrayLike, frame: Optional[Frame] = None):
+    def __init__(self, coords: ArrayLike, space: Optional[Space] = None):
         super().__init__(
             kind=CoordinateKind.POINT,
             coords=coords, 
-            frame=frame)
+            space=space)
         
 
 class Vector(Coordinate):
-    """Represents a vector (direction/displacement) in a coordinate frame.
+    """Represents a vector (direction/displacement) in a coordinate space.
     
     Vectors are NOT affected by translation, only by rotation and scaling.
     Use this class to represent directions, velocities, or relative displacements.
@@ -346,20 +346,20 @@ class Vector(Coordinate):
     Args:
         coords: Array-like (numpy array, list, tuple) [x, y] representing the vector components,
                      or [[x1, x2, ...], [y1, y2, ...]] for multiple vectors.
-        frame: Coordinate frame this vector is defined in. If None, uses absolute frame.
+        space: Coordinate space this vector is defined in. If None, uses absolute space.
     
     Examples:
-        >>> # Vector in a translated frame
-        >>> frame = Frame(transform=translate2D(10, 5))
-        >>> vector = Vector([1, 0], frame=frame)  # list works
-        >>> vector = Vector((1, 0), frame=frame)  # tuple works
-        >>> vector = Vector(np.array([1, 0]), frame=frame)  # numpy array works
+        >>> # Vector in a translated space
+        >>> space = Space(transform=translate2D(10, 5))
+        >>> vector = Vector([1, 0], space=space)  # list works
+        >>> vector = Vector((1, 0), space=space)  # tuple works
+        >>> vector = Vector(np.array([1, 0]), space=space)  # numpy array works
         >>> absolute_vector = vector.to_absolute()
         >>> absolute_vector.coords  # Still [1, 0] - unaffected by translation
     """
     
-    def __init__(self, coords: ArrayLike, frame: Optional[Frame] = None):
+    def __init__(self, coords: ArrayLike, space: Optional[Space] = None):
         super().__init__(
             kind=CoordinateKind.VECTOR,
             coords=coords, 
-            frame=frame)
+            space=space)

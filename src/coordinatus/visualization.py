@@ -1,6 +1,6 @@
-"""Visualization utilities for frames and coordinates.
+"""Visualization utilities for spaces and coordinates.
 
-This module provides plotting functions to visualize frames and points.
+This module provides plotting functions to visualize spaces and points.
 Requires matplotlib to be installed.
 
 Install with: pip install coordinatus[plotting]
@@ -19,7 +19,7 @@ except ImportError:  # pragma: no cover
     _HAS_MATPLOTLIB = False
     _Axes = None  # type: ignore
 
-from .frame import Frame
+from .space import Space
 from .coordinate import Point, Vector
 
 
@@ -32,52 +32,52 @@ def _check_matplotlib():
         )
 
 
-def draw_frame_axes(
+def draw_space_axes(
     ax: 'Axes',  # type: ignore[name-defined]
-    frame: Optional[Frame],
-    reference_frame: Optional[Frame] = None,
+    space: Optional[Space],
+    reference_space: Optional[Space] = None,
     color: str = 'blue',
-    label: str = 'Frame',
+    label: str = 'Space',
     alpha: float = 0.5,
 ) -> None:
-    """Draw a frame's origin and axes from a given reference frame's perspective.
+    """Draw a space's origin and axes from a given reference space's perspective.
     
     Args:
         ax: Matplotlib axes to draw on.
-        frame: The frame to draw. If None, draws the absolute/world frame.
-        reference_frame: The frame from which to view. If None, uses absolute coordinates.
-        color: Color for the frame axes and origin.
+        space: The space to draw. If None, draws the absolute/world space.
+        reference_space: The space from which to view. If None, uses absolute coordinates.
+        color: Color for the space axes and origin.
         label: Label prefix for the legend.
     
     Examples:
         >>> import matplotlib.pyplot as plt
-        >>> from coordinatus import Frame, create_frame
-        >>> from coordinatus.visualization import draw_frame_axes
+        >>> from coordinatus import Space, create_space
+        >>> from coordinatus.visualization import draw_space_axes
         >>> 
         >>> fig, ax = plt.subplots()
-        >>> frame = create_frame(None, tx=2, ty=1, angle_rad=np.pi/4)
-        >>> draw_frame_axes(ax, frame, color='blue', label='MyFrame')
+        >>> space = create_space(None, tx=2, ty=1, angle_rad=np.pi/4)
+        >>> draw_space_axes(ax, space, color='blue', label='MySpace')
         >>> plt.show()
     """
     _check_matplotlib()
     
-    # Use absolute frame if frame is None
-    if frame is None:
-        frame = Frame()
+    # Use absolute space if space is None
+    if space is None:
+        space = Space()
     
-    # Use absolute frame if reference_frame is None
-    if reference_frame is None:
-        reference_frame = Frame()
+    # Use absolute space if reference_space is None
+    if reference_space is None:
+        reference_space = Space()
     
-    # Get frame origin and unit vectors in reference frame
-    origin = Point(np.array([0, 0]), frame=frame)
-    x_axis = Vector(np.array([1, 0]), frame=frame)
-    y_axis = Vector(np.array([0, 1]), frame=frame)
+    # Get space origin and unit vectors in reference space
+    origin = Point(np.array([0, 0]), space=space)
+    x_axis = Vector(np.array([1, 0]), space=space)
+    y_axis = Vector(np.array([0, 1]), space=space)
     
-    # Convert to reference frame coordinates
-    origin_coords = origin.relative_to(reference_frame).coords
-    x_axis_coords = x_axis.relative_to(reference_frame).coords
-    y_axis_coords = y_axis.relative_to(reference_frame).coords
+    # Convert to reference space coordinates
+    origin_coords = origin.relative_to(reference_space).coords
+    x_axis_coords = x_axis.relative_to(reference_space).coords
+    y_axis_coords = y_axis.relative_to(reference_space).coords
 
     # Draw origin
     ax.plot(origin_coords[0], origin_coords[1], 'o', 
@@ -108,18 +108,18 @@ def draw_frame_axes(
 def draw_points(
     ax: 'Axes',  # type: ignore[name-defined]
     points: List[Point],
-    reference_frame: Optional[Frame] = None,
+    reference_space: Optional[Space] = None,
     color: str = 'red',
     label: str = 'Point',
     connect: bool = True,
     show_labels: bool = True
 ) -> None:
-    """Draw points from a given reference frame's perspective.
+    """Draw points from a given reference space's perspective.
     
     Args:
         ax: Matplotlib axes to draw on.
         points: List of Point objects to draw.
-        reference_frame: The frame from which to view. If None, uses absolute coordinates.
+        reference_space: The space from which to view. If None, uses absolute coordinates.
         color: Color for the points and connecting lines.
         label: Label prefix for point annotations.
         connect: If True, connects points with lines.
@@ -127,14 +127,14 @@ def draw_points(
     
     Examples:
         >>> import matplotlib.pyplot as plt
-        >>> from coordinatus import Frame, Point, create_frame
+        >>> from coordinatus import Space, Point, create_space
         >>> from coordinatus.visualization import draw_points
         >>> 
         >>> fig, ax = plt.subplots()
-        >>> frame = create_frame(None, tx=1, ty=1)
+        >>> space = create_space(None, tx=1, ty=1)
         >>> points = [
-        ...     Point(np.array([0, 0]), frame),
-        ...     Point(np.array([1, 0]), frame)
+        ...     Point(np.array([0, 0]), space),
+        ...     Point(np.array([1, 0]), space)
         ... ]
         >>> draw_points(ax, points, color='red')
         >>> plt.show()
@@ -144,12 +144,12 @@ def draw_points(
     if not points:
         return
     
-    # Use absolute frame if reference_frame is None
-    if reference_frame is None:
-        reference_frame = Frame()
+    # Use absolute space if reference_space is None
+    if reference_space is None:
+        reference_space = Space()
     
-    # Get point coordinates in reference frame
-    coords = [p.relative_to(reference_frame).coords for p in points]
+    # Get point coordinates in reference space
+    coords = [p.relative_to(reference_space).coords for p in points]
     
     xs = [c[0] for c in coords]
     ys = [c[1] for c in coords]

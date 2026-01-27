@@ -3,19 +3,19 @@
 from unittest.mock import Mock
 import numpy as np
 
-from coordinatus import Frame, Point, create_frame
-from coordinatus.visualization import draw_frame_axes, draw_points
+from coordinatus import Space, Point, create_space
+from coordinatus.visualization import draw_space_axes, draw_points
 
 
-class TestDrawFrameAxes:
-    """Tests for the draw_frame_axes function."""
+class TestDrawSpaceAxes:
+    """Tests for the draw_space_axes function."""
 
     def test_draws_origin(self):
         """Test that origin point is drawn."""
         ax = Mock()
-        frame = Frame()
+        space = Space()
         
-        draw_frame_axes(ax, frame, color='blue', label='Test')
+        draw_space_axes(ax, space, color='blue', label='Test')
         
         ax.plot.assert_called()
         # First plot call is the origin
@@ -26,29 +26,29 @@ class TestDrawFrameAxes:
     def test_draws_arrows_for_axes(self):
         """Test that x and y axis arrows are drawn."""
         ax = Mock()
-        frame = Frame()
+        space = Space()
         
-        draw_frame_axes(ax, frame)
+        draw_space_axes(ax, space)
         
         assert ax.arrow.call_count == 2  # x-axis and y-axis
 
     def test_draws_axis_labels(self):
         """Test that axis labels are drawn."""
         ax = Mock()
-        frame = Frame()
+        space = Space()
         
-        draw_frame_axes(ax, frame, label='MyFrame')
+        draw_space_axes(ax, space, label='MySpace')
         
         assert ax.text.call_count == 2
         text_calls = [c[0][2] for c in ax.text.call_args_list]
-        assert 'MyFrame X' in text_calls
-        assert 'MyFrame Y' in text_calls
+        assert 'MySpace X' in text_calls
+        assert 'MySpace Y' in text_calls
 
-    def test_none_frame_uses_absolute(self):
-        """Test that None frame draws the absolute/world frame."""
+    def test_none_space_uses_absolute(self):
+        """Test that None space draws the absolute/world space."""
         ax = Mock()
         
-        draw_frame_axes(ax, None)
+        draw_space_axes(ax, None)
         
         # Origin should be at (0, 0)
         first_call = ax.plot.call_args_list[0]
@@ -59,7 +59,7 @@ class TestDrawFrameAxes:
         """Test that color is applied to all elements."""
         ax = Mock()
         
-        draw_frame_axes(ax, Frame(), color='red')
+        draw_space_axes(ax, Space(), color='red')
         
         # Check origin color
         assert ax.plot.call_args_list[0][1]['color'] == 'red'
@@ -75,7 +75,7 @@ class TestDrawPoints:
     def test_draws_single_point(self):
         """Test drawing a single point."""
         ax = Mock()
-        point = Point(np.array([1, 2]), frame=Frame())
+        point = Point(np.array([1, 2]), space=Space())
         
         draw_points(ax, [point], color='red')
         
@@ -92,10 +92,10 @@ class TestDrawPoints:
     def test_connects_multiple_points(self):
         """Test that multiple points are connected with lines."""
         ax = Mock()
-        frame = Frame()
+        space = Space()
         points = [
-            Point(np.array([0, 0]), frame=frame),
-            Point(np.array([1, 1]), frame=frame),
+            Point(np.array([0, 0]), space=space),
+            Point(np.array([1, 1]), space=space),
         ]
         
         draw_points(ax, points, connect=True)
@@ -106,10 +106,10 @@ class TestDrawPoints:
     def test_no_connect_option(self):
         """Test that connect=False skips line drawing."""
         ax = Mock()
-        frame = Frame()
+        space = Space()
         points = [
-            Point(np.array([0, 0]), frame=frame),
-            Point(np.array([1, 1]), frame=frame),
+            Point(np.array([0, 0]), space=space),
+            Point(np.array([1, 1]), space=space),
         ]
         
         draw_points(ax, points, connect=False)
@@ -120,7 +120,7 @@ class TestDrawPoints:
     def test_shows_labels(self):
         """Test that point labels are shown."""
         ax = Mock()
-        points = [Point(np.array([0, 0]), frame=Frame())]
+        points = [Point(np.array([0, 0]), space=Space())]
         
         draw_points(ax, points, label='P', show_labels=True)
         
@@ -130,21 +130,21 @@ class TestDrawPoints:
     def test_hides_labels(self):
         """Test that show_labels=False hides labels."""
         ax = Mock()
-        points = [Point(np.array([0, 0]), frame=Frame())]
+        points = [Point(np.array([0, 0]), space=Space())]
         
         draw_points(ax, points, show_labels=False)
         
         ax.text.assert_not_called()
 
-    def test_respects_reference_frame(self):
-        """Test that points are transformed to reference frame."""
+    def test_respects_reference_space(self):
+        """Test that points are transformed to reference space."""
         ax = Mock()
-        # Point at (0,0) in a frame translated by (5, 3)
-        frame = create_frame(parent=None, tx=5, ty=3)
-        point = Point(np.array([0, 0]), frame=frame)
+        # Point at (0,0) in a space translated by (5, 3)
+        space = create_space(parent=None, tx=5, ty=3)
+        point = Point(np.array([0, 0]), space=space)
         
-        # View from absolute frame
-        draw_points(ax, [point], reference_frame=None, connect=False, show_labels=False)
+        # View from absolute space
+        draw_points(ax, [point], reference_space=None, connect=False, show_labels=False)
         
         # Point should appear at (5, 3) in absolute coords
         plot_call = ax.plot.call_args

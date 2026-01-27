@@ -5,15 +5,15 @@
     - [Optional: Visualization Support](#optional-visualization-support)
   - [Quick Start](#quick-start)
   - [Core Concepts](#core-concepts)
-    - [Frames](#frames)
+    - [Spaces](#spaces)
     - [Points vs Vectors](#points-vs-vectors)
     - [Coordinate Conversion](#coordinate-conversion)
   - [The Relativity of Coordinates](#the-relativity-of-coordinates)
-    - [View from Frame 1](#view-from-frame-1)
+    - [View from Space 1](#view-from-space-1)
     - [View from Absolute Space](#view-from-absolute-space)
-    - [View from Frame 2](#view-from-frame-2)
+    - [View from Space 2](#view-from-space-2)
   - [API Overview](#api-overview)
-    - [Creating Frames](#creating-frames)
+    - [Creating Spaces](#creating-spaces)
     - [Transformation Utilities](#transformation-utilities)
     - [Visualization (Optional)](#visualization-optional)
   - [Examples](#examples)
@@ -24,7 +24,7 @@
 
 # Coordinatus
 
-**Simple coordinate transformations with hierarchical frames**
+**Simple coordinate transformations with hierarchical spaces**
 
 Ever needed to convert coordinates between different spaces?  *Coordinatus* makes it easy to work with nested coordinate systems—like transforming from a character's local space to world space, or from one object to another.
 
@@ -33,7 +33,7 @@ Ever needed to convert coordinates between different spaces?  *Coordinatus* make
 ## Why Coordinatus?
 
 - **Intuitive API**: Work with Points and Vectors that transform correctly (vectors ignore translation!)
-- **Hierarchical Frames**: Build parent-child relationships just like scene graphs in game engines
+- **Hierarchical Spaces**: Build parent-child relationships just like scene graphs in game engines
 - **Clean transformations**: Simple functions for translation, rotation, and scaling
 - **Type-safe**: Points and Vectors are distinct types with correct transformation behavior
 
@@ -67,61 +67,61 @@ This installs matplotlib for the `coordinatus.visualization` module.
 ## Quick Start
 
 ```python
-from coordinatus import Frame, Point, create_frame
+from coordinatus import Space, Point, create_space
 import numpy as np
 
-# Create a world frame
-world = Frame()
+# Create a world space
+world = Space()
 
-# Create a car frame, positioned at (100, 50) in the world
-car = create_frame(parent=world, tx=100, ty=50, angle_rad=np.pi/4)
+# Create a car space, positioned at (100, 50) in the world
+car = create_space(parent=world, tx=100, ty=50, angle_rad=np.pi/4)
 
-# Create a wheel frame, offset (10, 0) from the car
-wheel = create_frame(parent=car, tx=10, ty=0)
+# Create a wheel space, offset (10, 0) from the car
+wheel = create_space(parent=car, tx=10, ty=0)
 
 # A point at the wheel's center
-point_in_wheel = Point(x=0, y=0, frame=wheel)
+point_in_wheel = Point(x=0, y=0, space=wheel)
 
 # Convert to world coordinates
 point_in_world = point_in_wheel.to_absolute()
 print(f"Wheel center in world: ({point_in_world.x}, {point_in_world.y})")
 
-# Convert between any two frames
+# Convert between any two spaces
 point_in_car = point_in_wheel.relative_to(car)
-print(f"Wheel center in car frame: ({point_in_car.x}, {point_in_car.y})")
+print(f"Wheel center in car space: ({point_in_car.x}, {point_in_car.y})")
 ```
 
 ## Core Concepts
 
-### Frames
-A `Frame` represents a coordinate system with its own position, rotation, and scale. Frames can be nested to create hierarchies.
+### Spaces
+A `Space` represents a coordinate system with its own position, rotation, and scale. Spaces can be nested to create hierarchies.
 
 ### Points vs Vectors
 - **Points** represent positions and are affected by translation
 - **Vectors** represent directions/offsets and ignore translation
 
 ```python
-from coordinatus import Point, Vector, Frame, create_frame
+from coordinatus import Point, Vector, Space, create_space
 
-frame = create_frame(parent=None, tx=10, ty=5)
+space = create_space(parent=None, tx=10, ty=5)
 
 # Point gets translated
-point = Point(x=0, y=0, frame=frame)
+point = Point(x=0, y=0, space=space)
 absolute = point.to_absolute()  # (10, 5)
 
 # Vector does NOT get translated
-vector = Vector(x=1, y=0, frame=frame)
+vector = Vector(x=1, y=0, space=space)
 absolute_vec = vector.to_absolute()  # (1, 0) - only rotation/scale applied
 ```
 
 ### Coordinate Conversion
 
-Convert between any two frames in your hierarchy:
+Convert between any two spaces in your hierarchy:
 
 ```python
-# Convert from frame_a to frame_b
-point_in_a = Point(np.array([5, 3]), frame=frame_a)
-point_in_b = point_in_a.relative_to(frame_b)
+# Convert from space_a to space_b
+point_in_a = Point(np.array([5, 3]), space=space_a)
+point_in_b = point_in_a.relative_to(space_b)
 
 # Or get absolute (world) coordinates
 point_in_world = point_in_a.to_absolute()
@@ -129,42 +129,42 @@ point_in_world = point_in_a.to_absolute()
 
 ## The Relativity of Coordinates
 
-A fundamental concept in coordinate transformations is that **the same geometry looks different depending on your point of view**. The same F-shaped object can appear rotated, scaled, or sheared simply by changing which reference frame you're observing from.
+A fundamental concept in coordinate transformations is that **the same geometry looks different depending on your point of view**. The same F-shaped object can appear rotated, scaled, or sheared simply by changing which reference space you're observing from.
 
-Consider these three views of the same scene with an F-shaped object and two coordinate frames:
+Consider these three views of the same scene with an F-shaped object and two coordinate spaces:
 
-### View from Frame 1
-![Frame1 View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/frame_visualization_Frame1.png)
+### View from Space 1
+![Space1 View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/space_visualization_Space1.png)
 
-The F shape appears undistorted in its canonical form because it was defined using Frame 1 coordinates. From this perspective, Frame 1's axes are the standard orthogonal x and y axes at the origin. Frame 2 (green) appears in a different position and orientation relative to Frame 1.
+The F shape appears undistorted in its canonical form because it was defined using Space 1 coordinates. From this perspective, Space 1's axes are the standard orthogonal x and y axes at the origin. Space 2 (green) appears in a different position and orientation relative to Space 1.
 
 ### View from Absolute Space
-![Absolute View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/frame_visualization_Absolute.png)
+![Absolute View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/space_visualization_Absolute.png)
 
-In absolute (world) space, we see how the F shape actually looks in reality. Frame 1 (blue) is sheared and the F inherits this shearing. Frame 2 (green) is rotated and scaled. This reveals the true geometric relationships between all elements.
+In absolute (world) space, we see how the F shape actually looks in reality. Space 1 (blue) is sheared and the F inherits this shearing. Space 2 (green) is rotated and scaled. This reveals the true geometric relationships between all elements.
 
-### View from Frame 2  
-![Frame2 View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/frame_visualization_Frame2.png)
+### View from Space 2  
+![Space2 View](https://raw.githubusercontent.com/ManuGira/Coordinatus/45d97475cd735e7b580256e23fbc62d0ae5d6862/examples/space_visualization_Space2.png)
 
-From Frame 2's perspective, Frame 2 is now at the origin with standard axes. The same F shape appears with a completely different orientation and distortion, even though the geometry itself hasn't changed—only our reference frame has.
+From Space 2's perspective, Space 2 is now at the origin with standard axes. The same F shape appears with a completely different orientation and distortion, even though the geometry itself hasn't changed—only our reference space has.
 
 **Key insight:** Coordinates are not absolute—they depend on the observer. The F shape's numerical coordinates change in each view, but the shape's position in physical space remains constant. This is the essence of relative coordinate systems.
 
 
 ## API Overview
 
-### Creating Frames
+### Creating Spaces
 
 ```python
-from coordinatus import Frame, create_frame
+from coordinatus import Space, create_space
 import numpy as np
 
 # Manually with a transform matrix
-frame = Frame(transform=my_matrix, parent=parent_frame)
+space = Space(transform=my_matrix, parent=parent_space)
 
 # Or use the convenient factory
-frame = create_frame(
-    parent=parent_frame,
+space = create_space(
+    parent=parent_space,
     tx=10, ty=5,           # Translation
     angle_rad=np.pi/4,     # Rotation
     sx=2, sy=2             # Scale
@@ -188,15 +188,15 @@ transform = trs2D(tx=10, ty=5, angle_rad=np.pi/4, sx=2, sy=2)
 ### Visualization (Optional)
 
 ```python
-from coordinatus.visualization import draw_frame_axes, draw_points
+from coordinatus.visualization import draw_space_axes, draw_points
 import matplotlib.pyplot as plt
 
 # Create figure
 fig, ax = plt.subplots()
 
-# Draw frames and points
-draw_frame_axes(ax, frame1, color='blue', label='Frame1')
-draw_frame_axes(ax, frame2, color='green', label='Frame2')
+# Draw spaces and points
+draw_space_axes(ax, space1, color='blue', label='Space1')
+draw_space_axes(ax, space2, color='green', label='Space2')
 draw_points(ax, [point1, point2], color='red')
 
 plt.show()
@@ -207,8 +207,8 @@ plt.show()
 ## Examples
 
 Check out the [`examples/`](examples/) folder for complete, runnable examples:
-- [nested_frames.py](examples/nested_frames.py)
-- [frame_visualization.py](examples/frame_visualization.py)
+- [nested_spaces.py](examples/nested_spaces.py)
+- [space_visualization.py](examples/space_visualization.py)
 
 ## Testing
 
